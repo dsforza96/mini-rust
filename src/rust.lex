@@ -47,4 +47,4 @@ eol+	                      => (lineNum := (!lineNum) + (String.size yytext); lex
 {alpha}({alpha}|{digit})*   => (ID(yytext, !lineNum, !lineNum));
 {digit}+                    => (CONST(valOf(Int.fromString yytext), !lineNum, !lineNum));
 
-.                           => (perror ("Ignoring bad character: " ^ yytext); lex());
+.                           => (perror("Ignoring bad character: " ^ yytext); lex());
