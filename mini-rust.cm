@@ -1,0 +1,13 @@
+(* mini-rust.cm Build project *)
+
+Group (* Library *)   
+  (*  structure Rust *)
+is
+  (*  src/datatypes.sml
+  *)  src/rust.lex (* Lexer rules. *)
+    src/rust.grm:MLYacc (* Parser rules. *)
+    src/glue.sml (* Build the parser *)
+  (*  src/main.sml (* Lex, parse, panic... *)
+  *)  $/basis.cm (* SML/NJ’s Basis Library. *)
+    $/ml-yacc-lib.cm (* Code written by Lucent. *)
+    $smlnj/compiler/compiler.cm (* Structure Compiler. *)

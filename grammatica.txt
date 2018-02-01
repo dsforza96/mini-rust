@@ -1,0 +1,23 @@
+start -> SEMI | block | exp SEMI | let SEMI | fun | start start | EOF
+
+block -> LBRA start RBRA 
+
+exp -> CONST | ID | exp PLUS exp | call
+
+let -> LET ID ASS exp
+
+fun -> FUN ID ltime LPAR par RPAR ret block
+
+ltime -> LCHE varLtime RCHE | 
+
+varLtime -> LTIME | varLtime COMMA varLtime
+
+par -> ID type | par COMMA par | 
+
+type -> COLON AMP INT | COLON AMP LTIME INT
+
+ret -> ARROW type | 
+
+call -> ID LPAR arg RPAR
+
+arg -> AMP ID | arg COMMA arg |

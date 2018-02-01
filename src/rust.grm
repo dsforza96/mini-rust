@@ -1,0 +1,58 @@
+open DataTypes
+
+%%
+
+%name Rust
+%verbose
+
+%pos int
+%eop EOF
+%noshift EOF
+
+%term CONST of int | PLUS | LET | FUN | ID of string | INT | ASS | COLON | SEMI | COMMA | ARROW | RPAR | LPAR | RBRA | LBRA | RCHE | LCHE | LTIME | AMP | EOF
+
+%nonterm start | rust | block | exp | let | fun | ltime | varLtime | par | type | ret | call | arg | funId | varId
+
+%nonassoc COMMA
+%left PLUS
+
+%%
+start: rust    ()
+
+rust: SEMI ()
+| block ()
+| exp SEMI  ()
+| let SEMI  ()
+| fun   ()
+| rust rust   ()
+
+block: LBRA rust RBRA  ()
+
+exp: CONST  ()
+| varId    ()
+| exp PLUS exp  ()
+| call  ()
+
+let: LET varId ASS exp ()
+
+fun: FUN funId ltime LPAR par RPAR ret block   ()
+ltime: LCHE varLtime RCHE   ()
+|   ()
+varLtime: LTIME ()
+| varLtime COMMA varLtime   ()
+par: varId type    ()
+| par COMMA par ()
+|   ()
+type: COLON AMP INT ()
+| COLON AMP LTIME INT   ()
+ret: ARROW type ()
+|   ()
+
+call: funId LPAR arg RPAR  ()
+arg: AMP varId ()
+| arg COMMA arg ()
+|   ()
+
+funId: ID   ()
+
+varId: ID   ()
