@@ -2,7 +2,7 @@ src/rust.lex.sml
 src/rust.grm.sig
 src/rust.grm.sml
 src/rust.grm.desc
-src/.cm*
+src/.cm
 
 
 # Created by https://www.gitignore.io/api/linux,macos,windows
