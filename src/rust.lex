@@ -40,12 +40,12 @@ eol = ("\r\n"|"\n"|"\r");
 "}"                           => (T.RBRA(!lineNum, !lineNum));
 "<"                           => (T.LCHE(!lineNum, !lineNum));
 ">"                           => (T.RCHE(!lineNum, !lineNum));
-"'"{alpha}({alpha}|{digit})*  => (T.LTIME(yytext, !lineNum, !lineNum));
 "&"                           => (T.AMP(!lineNum, !lineNum));
 "print!"                      => (T.PRINT(!lineNum, !lineNum));
 
-{alpha}({alpha}|{digit})*      => (T.ID(yytext, !lineNum, !lineNum));
-{digit}+                       => (T.CONST(valOf(Int.fromString yytext), !lineNum, !lineNum));
+"'"{alpha}({alpha}|{digit})*  => (T.LTIME(yytext, !lineNum, !lineNum));
+{alpha}({alpha}|{digit})*     => (T.ID(yytext, !lineNum, !lineNum));
+{digit}+                      => (T.CONST(valOf(Int.fromString yytext), !lineNum, !lineNum));
 
-.                              => (perror("Error, line " ^ (Int.toString (!lineNum))
-                                          ^ ", ignoring bad character: " ^ yytext); lex());
+.                             => (perror("Error, line " ^ (Int.toString (!lineNum))
+                                         ^ ", ignoring bad character: " ^ yytext); lex());
