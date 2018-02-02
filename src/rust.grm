@@ -9,50 +9,21 @@ open DataTypes
 %eop EOF
 %noshift EOF
 
-%term CONST of int | PLUS | LET | FUN | ID of string | INT | ASS | COLON | SEMI | COMMA | ARROW | RPAR | LPAR | RBRA | LBRA | RCHE | LCHE | LTIME of string | AMP | EOF
+%term CONST of int | PLUS | LET | FUN | ID of string | INT | ASS | COLON | SEMI | COMMA | ARROW | RPAR | LPAR | RBRA | LBRA | RCHE | LCHE | LTIME of string | AMP | PRINT | EOF
 
-%nonterm start | rust | block | exp | let | fun | ltime | varLtime | par | type | ret | call | arg | funId | varId
+%nonterm start | rust of Rust | block | exp | let | fun | ltime | varLtime | par | type | ret | call | arg | print | funId | varId of V
 
 %nonassoc COMMA
 %left PLUS
 
 %%
-start: rust    ()
 
-rust: SEMI ()
-| block ()
-| exp SEMI  ()
-| let SEMI  ()
-| fun   ()
-| rust rust   ()
+start: rust (rust)
+       |    ()
 
-block: LBRA rust RBRA  ()
+rust: CONST (Const CONST)
+    | varId  (Var varId)
+    | rust PLUS rust    (Plus (rust, rust))
+    | LET rust ASS rust    (Let (rust, rust))
 
-exp: CONST  ()
-| varId    ()
-| exp PLUS exp  ()
-| call  ()
-
-let: LET varId ASS exp ()
-
-fun: FUN funId ltime LPAR par RPAR ret block   ()
-ltime: LCHE varLtime RCHE   ()
-|   ()
-varLtime: LTIME ()
-| varLtime COMMA varLtime   ()
-par: varId type    ()
-| par COMMA par ()
-|   ()
-type: COLON AMP INT ()
-| COLON AMP LTIME INT   ()
-ret: ARROW type ()
-|   ()
-
-call: funId LPAR arg RPAR  ()
-arg: AMP varId ()
-| arg COMMA arg ()
-|   ()
-
-funId: ID   ()
-
-varId: ID   ()
+varId: ID   (V ID)

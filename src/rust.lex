@@ -18,33 +18,34 @@ val perror = fn x => TextIO.output(TextIO.stdErr, x ^ "\n");
 alpha = [A-Za-z_-];
 digit = [0-9];
 ws = [\ \t];
-eol = (\r\n|\n|\r);
+eol = ("\r\n"|"\n"|"\r");
 
 %%
 
-eol+	                      => (lineNum := (!lineNum) + (String.size yytext); lex());
+{eol}	                      => (lineNum := (!lineNum) + 1; lex());
 {ws}+	                      => (lex());
 
-"+"                           => (PLUS(!lineNum, !lineNum));
-"let"                         => (LET(!lineNum, !lineNum));
-"fn"                          => (FUN(!lineNum, !lineNum));
-"int"                         => (INT(!lineNum, !lineNum));
-"="                           => (ASS(!lineNum, !lineNum));
-":"                           => (COLON(!lineNum, !lineNum));
-";"                           => (SEMI(!lineNum, !lineNum));
-","                           => (COMMA(!lineNum, !lineNum));
-"->"                          => (ARROW(!lineNum, !lineNum));
-"("                           => (LPAR(!lineNum, !lineNum));
-")"                           => (RPAR(!lineNum, !lineNum));
-"{"                           => (LBRA(!lineNum, !lineNum));
-"}"                           => (RBRA(!lineNum, !lineNum));
-"<"                           => (LCHE(!lineNum, !lineNum));
-">"                           => (RCHE(!lineNum, !lineNum));
-"'"{alpha}({alpha}|{digit})*  => (LTIME(yytext, !lineNum, !lineNum));
-"&"                           => (AMP(!lineNum, !lineNum));
-"print!"                      => (PRINT(!lineNum, !lineNum));
+"+"                           => (T.PLUS(!lineNum, !lineNum));
+"let"                         => (T.LET(!lineNum, !lineNum));
+"fn"                          => (T.FUN(!lineNum, !lineNum));
+"int"                         => (T.INT(!lineNum, !lineNum));
+"="                           => (T.ASS(!lineNum, !lineNum));
+":"                           => (T.COLON(!lineNum, !lineNum));
+";"                           => (T.SEMI(!lineNum, !lineNum));
+","                           => (T.COMMA(!lineNum, !lineNum));
+"->"                          => (T.ARROW(!lineNum, !lineNum));
+"("                           => (T.LPAR(!lineNum, !lineNum));
+")"                           => (T.RPAR(!lineNum, !lineNum));
+"{"                           => (T.LBRA(!lineNum, !lineNum));
+"}"                           => (T.RBRA(!lineNum, !lineNum));
+"<"                           => (T.LCHE(!lineNum, !lineNum));
+">"                           => (T.RCHE(!lineNum, !lineNum));
+"'"{alpha}({alpha}|{digit})*  => (T.LTIME(yytext, !lineNum, !lineNum));
+"&"                           => (T.AMP(!lineNum, !lineNum));
+"print!"                      => (T.PRINT(!lineNum, !lineNum));
 
-{alpha}({alpha}|{digit})*   => (ID(yytext, !lineNum, !lineNum));
-{digit}+                    => (CONST(valOf(Int.fromString yytext), !lineNum, !lineNum));
+{alpha}({alpha}|{digit})*      => (T.ID(yytext, !lineNum, !lineNum));
+{digit}+                       => (T.CONST(valOf(Int.fromString yytext), !lineNum, !lineNum));
 
-.                           => (perror("Ignoring bad character: " ^ yytext); lex());
+.                              => (perror("Error, line " ^ (Int.toString (!lineNum))
+                                          ^ ", ignoring bad character: " ^ yytext); lex());

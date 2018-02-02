@@ -1,4 +1,4 @@
-structure RustLrVals = RustLrValsFun(structure Token = RustParser.Token);
+structure RustLrVals = RustLrValsFun(structure Token = LrParser.Token);
 structure RustLex = RustLexFun(structure Tokens = RustLrVals.Tokens);
 structure RustParser = Join(
     structure ParserData = RustLrVals.ParserData

@@ -1,6 +1,6 @@
 (* mini-rust.cm Build project *)
 
-Library 
+Library
     structure Rust
 is
     src/datatypes.sml
