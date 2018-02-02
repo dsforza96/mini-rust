@@ -9,7 +9,7 @@ open DataTypes
 %eop EOF
 %noshift EOF
 
-%term CONST of int | PLUS | LET | FUN | ID of string | INT | ASS | COLON | SEMI | COMMA | ARROW | RPAR | LPAR | RBRA | LBRA | RCHE | LCHE | LTIME | AMP | EOF
+%term CONST of int | PLUS | LET | FUN | ID of string | INT | ASS | COLON | SEMI | COMMA | ARROW | RPAR | LPAR | RBRA | LBRA | RCHE | LCHE | LTIME of string | AMP | EOF
 
 %nonterm start | rust | block | exp | let | fun | ltime | varLtime | par | type | ret | call | arg | funId | varId
 

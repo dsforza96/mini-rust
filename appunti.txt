@@ -1,4 +1,6 @@
-start -> SEMI | block | exp SEMI | let SEMI | fun | start start | EOF
+start -> rust
+
+rust -> SEMI | block | exp SEMI | let SEMI | fun | rust rust
 
 block -> LBRA start RBRA 
 
@@ -21,3 +23,8 @@ ret -> ARROW type |
 call -> ID LPAR arg RPAR
 
 arg -> AMP ID | arg COMMA arg |
+
+
+
+R, S := k | x | R + S | let x = R
+

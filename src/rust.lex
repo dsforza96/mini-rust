@@ -40,7 +40,7 @@ eol+	                      => (lineNum := (!lineNum) + (String.size yytext); lex
 "}"                           => (RBRA(!lineNum, !lineNum));
 "<"                           => (LCHE(!lineNum, !lineNum));
 ">"                           => (RCHE(!lineNum, !lineNum));
-"'"{alpha}({alpha}|{digit})*  => (LTIME(!lineNum, !lineNum));
+"'"{alpha}({alpha}|{digit})*  => (LTIME(yytext, !lineNum, !lineNum));
 "&"                           => (AMP(!lineNum, !lineNum));
 "print!"                      => (PRINT(!lineNum, !lineNum));
 
