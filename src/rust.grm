@@ -19,21 +19,19 @@ open DataTypes
             | lltime of LtimeList | ppar of ArgList | ret of Ltime
             | ltime of LtimeList | par of ArgList
 
-%nonassoc CONST ID ASS
-%right LET
+%nonassoc SEMI LBRA RBRA CONST LPAR RPAR COMMA LET ASS FUN LCHE RCHE LTIME COLON AMP INT ARROW PRINT ID EOF
 %left PLUS
 
 %%
 
 start: rust (rust)
 
-rust: SEMI  (Skip ())
-    | block (Block block)
-    | exp SEMI  (Exp exp)
-    | llet SEMI    (llet)
-    | ffun   (ffun)
-    | print SEMI    (print)
-    | rust rust (Comp (rust1, rust2))
+rust: SEMI rust (Skip ())
+    | block rust (Comp (Block block, rust))
+    | exp SEMI rust  (Comp (Exp exp, rust))
+    | llet SEMI rust  (Comp (llet, rust))
+    | ffun rust  (Comp (ffun, rust))
+    | print SEMI rust   (Comp(print, rust))
     |    (Empty ())
 
 block: LBRA rust RBRA   (rust)
