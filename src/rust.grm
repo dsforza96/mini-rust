@@ -9,21 +9,71 @@ open DataTypes
 %eop EOF
 %noshift EOF
 
-%term CONST of int | PLUS | LET | FUN | ID of string | INT | ASS | COLON | SEMI | COMMA | ARROW | RPAR | LPAR | RBRA | LBRA | RCHE | LCHE | LTIME of string | AMP | PRINT | EOF
+%term   SEMI | LBRA | RBRA | CONST of int | PLUS | LPAR | RPAR | COMMA | LET
+        | ASS | FUN | LCHE | RCHE | LTIME of string | COLON | AMP | INT
+        | ARROW | PRINT | ID of string | EOF
 
-%nonterm start of Rust | rust of Rust | block | exp | let | fun | ltime | varLtime | par | type | ret | call | arg | print | funId | varId of V
+%nonterm    start of Rust | rust of Rust | block of Rust | print of Rust
+            | exp of Rust | llet of Rust | ffun of Rust | varId of VarDT
+            | call of Rust | funId of VarDT | aarg of Rust | arg of Rust
+            | lltime of Rust | ppar of Rust | ret of Rust | ltime of Rust
+            | par of Rust
 
-%nonassoc CONST ID LET ASS
+%nonassoc CONST ID ASS
+%right LET
 %left PLUS
 
 %%
 
 start: rust (rust)
-       |    (Empty ())
 
-rust: CONST (Const CONST)
-    | varId  (Var varId)
-    | rust PLUS rust    (Plus (rust1, rust2))
-    | LET rust ASS rust    (Let (rust1, rust2))
+rust: SEMI  ()
+    | block ()
+    | exp SEMI  ()
+    | llet SEMI    ()
+    | ffun   ()
+    | print SEMI    ()
+    | rust rust ()
+    |    (Empty ())
+
+block: LBRA rust RBRA   ()
+
+exp: CONST ()
+   | varId ()
+   | exp PLUS exp  ()
+   | call  ()
+
+call: funId LPAR aarg RPAR  ()
+
+aarg: arg   ()
+    |   (Empty ())
+
+arg: AMP varId ()
+   | arg COMMA arg ()
+
+llet: LET varId ASS exp  ()
+
+ffun: FUN funId lltime LPAR ppar RPAR ret block  ()
+
+lltime: LCHE ltime RCHE ()
+      | (Empty ())
+
+ltime: LTIME    ()
+     | ltime COMMA ltime    ()
+
+ppar: par   ()
+    | (Empty ())
+
+par: varId COLON AMP LTIME INT  ()
+   | varId COLON AMP INT    ()
+   | par COMMA par  ()
+
+ret: ARROW AMP LTIME INT    ()
+   | ARROW AMP INT  ()
+   |    (Empty())
+
+print: PRINT LPAR aarg RPAR ()
 
 varId: ID   (V ID)
+
+funId: ID   (V ID)
