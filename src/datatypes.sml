@@ -1,18 +1,18 @@
 signature DATATYPES =
-sig datatype V = V of string
+sig datatype VarDT = V of string
       and Rust = Empty of unit
                  | Const of int
-                 | Var of V
+                 | Var of VarDT
                  | Plus of Rust * Rust
                  | Let of Rust * Rust
 end;
 
 structure DataTypes : DATATYPES =
 struct
-    datatype V = V of string
+    datatype VarDT = V of string
       and Rust = Empty of unit
                 | Const of int
-                | Var of V
+                | Var of VarDT
                 | Plus of Rust * Rust
                 | Let of Rust * Rust
 end;

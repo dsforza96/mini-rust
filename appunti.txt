@@ -24,6 +24,8 @@ call -> ID LPAR arg RPAR
 
 arg -> AMP ID | arg COMMA arg |
 
+
+
 V := x
 
 L := 'a
@@ -31,6 +33,49 @@ L := 'a
 M, N := k | V | M + N
 
 r, s := ; | r;s | {r} | let V = r | fn V <L> (V: &L int) -> &L int {r} | V(&V) | println!(r)
+
+
+CONST of int | PLUS | LET | FUN | ID of string | INT | ASS | COLON | SEMI | COMMA | ARROW | RPAR | LPAR | RBRA | LBRA | RCHE | LCHE | LTIME of string | AMP | PRINT | EOF
+
+start of Rust | rust of Rust | block | exp | let | fun | lltime | ltime | varLtime | ppar | par | type | ret | call | aarg | arg | print | funId | varId of V
+
+() = vuoto
+
+start -> rust
+
+rust -> SEMI | block | exp SEMI | let SEMI | fun | print SEMI | rust1 rust2 | ()
+
+block -> LBRA rust RBRA
+
+exp -> CONST | varId | exp1 PLUS exp2 | call
+
+call -> funId LPAR aarg RPAR
+
+aarg -> arg | ()
+
+arg -> AMP varId | arg COMMA arg
+
+let -> LET varId ASS exp
+
+fun -> FUN funId lltime LPAR ppar RPAR ret block
+
+lltime -> LCHE ltime RCHE | ()
+
+ltime -> LTIME | ltime COMMA ltime
+
+ppar -> par | ()
+
+par -> varId COLON AMP LTIME INT | varId COLON AMP INT | par COMMA par
+
+ret -> ARROW AMP LTIME INT | ARROW AMP INT | ()
+
+print -> PRINT LPAR aarg RPAR
+
+varId -> ID
+
+funId -> ID
+
+
 
 
 (GRAMMATICAAAAAAAAAAAA)
