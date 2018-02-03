@@ -14,10 +14,10 @@ open DataTypes
         | ARROW | PRINT | ID of string | EOF
 
 %nonterm    start of Rust | rust of Rust | block of Rust | print of Rust
-            | exp of Rust | llet of Rust | ffun of Rust | varId of VarDT
-            | call of Rust | funId of VarDT | aarg of Rust | arg of Rust
-            | lltime of Rust | ppar of Rust | ret of Rust | ltime of Rust
-            | par of Rust
+            | exp of ExpDT | llet of Rust | ffun of Rust | varId of VarDT
+            | call of ExpDT | funId of VarDT | aarg of ArgList | arg of ArgList
+            | lltime of LtimeList | ppar of ArgList | ret of Ltime
+            | ltime of LtimeList | par of ArgList
 
 %nonassoc CONST ID ASS
 %right LET
@@ -27,52 +27,53 @@ open DataTypes
 
 start: rust (rust)
 
-rust: SEMI  ()
-    | block ()
-    | exp SEMI  ()
-    | llet SEMI    ()
-    | ffun   ()
-    | print SEMI    ()
-    | rust rust ()
+rust: SEMI  (Skip ())
+    | block (Block block)
+    | exp SEMI  (Exp exp)
+    | llet SEMI    (llet)
+    | ffun   (ffun)
+    | print SEMI    (print)
+    | rust rust (Comp (rust1, rust2))
     |    (Empty ())
 
-block: LBRA rust RBRA   ()
+block: LBRA rust RBRA   (rust)
 
-exp: CONST ()
-   | varId ()
-   | exp PLUS exp  ()
-   | call  ()
+exp: CONST (Const CONST)
+   | varId (Var varId)
+   | exp PLUS exp  (Plus (exp1, exp2))
+   | call  (call)
 
-call: funId LPAR aarg RPAR  ()
+call: funId LPAR aarg RPAR  (Call (funId, aarg))
 
-aarg: arg   ()
-    |   (Empty ())
+aarg: arg   (arg)
+    |   (EmptyAL ())
 
-arg: AMP varId ()
-   | arg COMMA arg ()
+arg: AMP varId (ArgConcat (EmptyLT (), varId, EmptyAL ()))
+   | AMP varId COMMA arg (ArgConcat (EmptyLT(), varId, arg))
 
-llet: LET varId ASS exp  ()
+llet: LET varId ASS exp  (Let (varId, exp))
 
-ffun: FUN funId lltime LPAR ppar RPAR ret block  ()
+ffun: FUN funId lltime LPAR ppar RPAR ret block  (Fun (funId, lltime, ppar, ret, block))
 
-lltime: LCHE ltime RCHE ()
-      | (Empty ())
+lltime: LCHE ltime RCHE (ltime)
+      | (EmptyLL ())
 
-ltime: LTIME    ()
-     | ltime COMMA ltime    ()
+ltime: LTIME    (LtimeConcat (L LTIME, EmptyLL ()))
+     | LTIME COMMA ltime    (LtimeConcat (L LTIME, ltime))
 
-ppar: par   ()
-    | (Empty ())
+ppar: par   (par)
+    | (EmptyAL ())
 
-par: varId COLON AMP LTIME INT  ()
-   | varId COLON AMP INT    ()
-   | par COMMA par  ()
+par: varId COLON AMP LTIME INT  (ArgConcat (L LTIME, varId, EmptyAL ()))
+   | varId COLON AMP INT    (ArgConcat (EmptyLT (), varId, EmptyAL ()))
+   | varId COLON AMP LTIME INT COMMA par    (ArgConcat (L LTIME, varId, par))
+   | varId COLON AMP INT COMMA par    (ArgConcat (EmptyLT (), varId, par))
 
-ret: ARROW AMP LTIME INT    ()
-   | ARROW AMP INT  ()
-   |    (Empty())
+ret: ARROW AMP LTIME INT    (L LTIME)
+   | ARROW AMP INT  (EmptyLT ())
+   |    (EmptyLT ())
 
-print: PRINT LPAR aarg RPAR ()
+print: PRINT LPAR exp RPAR (Print exp)
 
 varId: ID   (V ID)
 

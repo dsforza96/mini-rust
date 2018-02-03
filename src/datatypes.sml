@@ -1,17 +1,18 @@
 signature DATATYPES =
 sig datatype VarDT = V of string
 
-      and ExpDT =  Const of Int
+      and ExpDT =  Const of int
                  | Var of VarDT
                  | Plus of ExpDT * ExpDT
+                 | Call of VarDT * ArgList
 
-      and Ltime = Empty of unit
-                 | L of String
+      and Ltime = EmptyLT of unit
+                 | L of string
 
-      and LtimeList = Empty of unit
+      and LtimeList = EmptyLL of unit
                  | LtimeConcat of Ltime * LtimeList
 
-      and ArgList = Empty of unit
+      and ArgList = EmptyAL of unit
                  | ArgConcat of Ltime * VarDT * ArgList
 
       and Rust = Empty of unit
@@ -19,27 +20,27 @@ sig datatype VarDT = V of string
                  | Comp of Rust * Rust
                  | Exp of ExpDT
                  | Block of Rust
-                 | Let of VarDT * Rust
+                 | Let of VarDT * ExpDT
                  | Fun of VarDT * LtimeList * ArgList * Ltime * Rust
-                 | Call of VarDT * ArgList
-                 | Print of Rust
+                 | Print of ExpDT
 end;
 
 structure DataTypes : DATATYPES =
 struct
     datatype VarDT = V of string
 
-      and ExpDT =  Const of Int
+      and ExpDT =  Const of int
                  | Var of VarDT
                  | Plus of ExpDT * ExpDT
+                 | Call of VarDT * ArgList
 
-      and Ltime = Empty of unit
-                 | L of String
+      and Ltime = EmptyLT of unit
+                 | L of string
 
-      and LtimeList = Empty of unit
+      and LtimeList = EmptyLL of unit
                  | LtimeConcat of Ltime * LtimeList
 
-      and ArgList = Empty of unit
+      and ArgList = EmptyAL of unit
                  | ArgConcat of Ltime * VarDT * ArgList
 
       and Rust = Empty of unit
@@ -47,8 +48,7 @@ struct
                  | Comp of Rust * Rust
                  | Exp of ExpDT
                  | Block of Rust
-                 | Let of VarDT * Rust
+                 | Let of VarDT * ExpDT
                  | Fun of VarDT * LtimeList * ArgList * Ltime * Rust
-                 | Call of VarDT * ArgList
-                 | Print of Rust
+                 | Print of ExpDT
 end;
