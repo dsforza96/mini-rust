@@ -11,19 +11,19 @@ open DataTypes
 
 %term CONST of int | PLUS | LET | FUN | ID of string | INT | ASS | COLON | SEMI | COMMA | ARROW | RPAR | LPAR | RBRA | LBRA | RCHE | LCHE | LTIME of string | AMP | PRINT | EOF
 
-%nonterm start | rust of Rust | block | exp | let | fun | ltime | varLtime | par | type | ret | call | arg | print | funId | varId of V
+%nonterm start of Rust | rust of Rust | block | exp | let | fun | ltime | varLtime | par | type | ret | call | arg | print | funId | varId of V
 
-%nonassoc COMMA
+%nonassoc CONST ID LET ASS
 %left PLUS
 
 %%
 
 start: rust (rust)
-       |    ()
+       |    (Empty ())
 
 rust: CONST (Const CONST)
     | varId  (Var varId)
-    | rust PLUS rust    (Plus (rust, rust))
-    | LET rust ASS rust    (Let (rust, rust))
+    | rust PLUS rust    (Plus (rust1, rust2))
+    | LET rust ASS rust    (Let (rust1, rust2))
 
 varId: ID   (V ID)
