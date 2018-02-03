@@ -41,7 +41,7 @@ eol = ("\r\n"|"\n"|"\r");
 "<"                           => (T.LCHE(!lineNum, !lineNum));
 ">"                           => (T.RCHE(!lineNum, !lineNum));
 "&"                           => (T.AMP(!lineNum, !lineNum));
-"print!"                      => (T.PRINT(!lineNum, !lineNum));
+"println!"                      => (T.PRINT(!lineNum, !lineNum));
 
 "'"{alpha}({alpha}|{digit})*  => (T.LTIME(yytext, !lineNum, !lineNum));
 {alpha}({alpha}|{digit})*     => (T.ID(yytext, !lineNum, !lineNum));
