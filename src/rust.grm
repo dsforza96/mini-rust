@@ -29,7 +29,7 @@ start: rust (rust)
 rust: SEMI rust (Comp(Skip (), rust))
     | block rust (Comp (Block block, rust))
     | exp SEMI rust  (Comp (Exp exp, rust))
-    | llet SEMI rust  (Comp (llet, rust))
+    | llet  (llet)
     | ffun rust  (Comp (ffun, rust))
     | print SEMI rust   (Comp(print, rust))
     |    (Empty ())
@@ -49,7 +49,7 @@ aarg: arg   (arg)
 arg: AMP varId (ArgConcat (EmptyLT (), varId, EmptyAL ()))
    | AMP varId COMMA arg (ArgConcat (EmptyLT(), varId, arg))
 
-llet: LET varId ASS exp  (Let (varId, exp))
+llet: LET varId ASS exp SEMI rust (Let (varId, exp, rust))
 
 ffun: FUN funId lltime LPAR ppar RPAR ret block  (Fun (funId, lltime, ppar, ret, block))
 

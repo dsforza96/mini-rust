@@ -20,7 +20,7 @@ sig datatype VarDT = V of string
                  | Comp of Rust * Rust
                  | Exp of ExpDT
                  | Block of Rust
-                 | Let of VarDT * ExpDT
+                 | Let of VarDT * ExpDT * Rust
                  | Fun of VarDT * LtimeList * ArgList * Ltime * Rust
                  | Print of ExpDT
 end;
@@ -48,7 +48,7 @@ struct
                  | Comp of Rust * Rust
                  | Exp of ExpDT
                  | Block of Rust
-                 | Let of VarDT * ExpDT
+                 | Let of VarDT * ExpDT * Rust
                  | Fun of VarDT * LtimeList * ArgList * Ltime * Rust
                  | Print of ExpDT
 end;
