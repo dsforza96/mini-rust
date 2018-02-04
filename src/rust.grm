@@ -26,7 +26,7 @@ open DataTypes
 
 start: rust (rust)
 
-rust: SEMI rust (Skip ())
+rust: SEMI rust (Comp(Skip (), rust))
     | block rust (Comp (Block block, rust))
     | exp SEMI rust  (Comp (Exp exp, rust))
     | llet SEMI rust  (Comp (llet, rust))
