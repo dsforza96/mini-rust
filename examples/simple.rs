@@ -1,3 +1,3 @@
-println!(10 + 2);
-6;
-println!(2 + 1 + 3);
+let x = 6;
+let y = 4;
+println!(x + y);

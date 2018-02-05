@@ -14,10 +14,11 @@ open DataTypes
         | ARROW | PRINT | ID of string | EOF
 
 %nonterm    start of Rust | rust of Rust | block of Rust | print of Rust
-            | exp of ExpDT | llet of Rust | ffun of Rust | varId of VarDT
-            | call of ExpDT | funId of VarDT | aarg of ArgList | arg of ArgList
-            | lltime of LtimeList | ppar of ArgList | ret of Ltime
-            | ltime of LtimeList | par of ArgList
+            | exp of ExpDT | llet of Rust | ass of Rust | ffun of Rust
+            | varId of VarDT | call of ExpDT | funId of VarDT
+            | aarg of ArgList | arg of ArgList | lltime of LtimeList
+            | ppar of ArgList | ret of Ltime | ltime of LtimeList
+            | par of ArgList
 
 %nonassoc SEMI LBRA RBRA CONST LPAR RPAR COMMA LET ASS FUN LCHE RCHE LTIME COLON AMP INT ARROW PRINT ID EOF
 %left PLUS
@@ -27,9 +28,10 @@ open DataTypes
 start: rust (rust)
 
 rust: SEMI rust (Comp(Skip (), rust))
-    | block rust (Comp (Block block, rust))
+    | block rust (Block (block, rust))
     | exp SEMI rust  (Comp (Exp exp, rust))
     | llet  (llet)
+    | ass   (ass)
     | ffun rust  (Comp (ffun, rust))
     | print SEMI rust   (Comp(print, rust))
     |    (Empty ())
@@ -49,7 +51,10 @@ aarg: arg   (arg)
 arg: AMP varId (ArgConcat (EmptyLT (), varId, EmptyAL ()))
    | AMP varId COMMA arg (ArgConcat (EmptyLT(), varId, arg))
 
-llet: LET varId ASS exp SEMI rust (Let (varId, exp, rust))
+llet: LET varId SEMI rust (Let (varId, Undef (), rust))
+    | LET varId ASS exp SEMI rust  (Let (varId, exp, rust))
+
+ass: varId ASS exp SEMI (Ass (varId, exp))
 
 ffun: FUN funId lltime LPAR ppar RPAR ret block  (Fun (funId, lltime, ppar, ret, block))
 
