@@ -43,6 +43,7 @@ exp: CONST (Const CONST)
    | AMP varId (Ref varId)
    | exp PLUS exp  (Plus (exp1, exp2))
    | call  (call)
+   | LPAR exp RPAR  (exp)
 
 
 call: funId LPAR aarg RPAR  (Call (funId, aarg))
