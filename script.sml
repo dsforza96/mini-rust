@@ -1,4 +1,5 @@
 CM.make "mini-rust.cm";
-Rust.compile("examples/dummy.rs");
-Rust.compile("examples/block.rs");
+Rust.execute(Rust.compile("examples/dummy.rs"));
+Rust.execute(Rust.compile("examples/print.rs"));
+Rust.execute(Rust.compile("examples/simple.rs"));
 OS.Process.exit(OS.Process.success);
