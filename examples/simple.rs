@@ -1,3 +1,6 @@
-let x = 6;
-let y = 4;
-println!(x + y);
+let x = 2;
+{
+    let b = 2;
+    x = b;
+}
+println!(x);

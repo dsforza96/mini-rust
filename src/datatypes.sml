@@ -4,6 +4,7 @@ sig datatype VarDT = V of string
       and ExpDT = Undef of unit
                  | Const of int
                  | Var of VarDT
+                 | Ref of VarDT
                  | Plus of ExpDT * ExpDT
                  | Call of VarDT * ArgList
 
@@ -23,7 +24,7 @@ sig datatype VarDT = V of string
                  | Block of Rust * Rust
                  | Let of VarDT * ExpDT * Rust
                  | Ass of VarDT * ExpDT
-                 | Fun of VarDT * LtimeList * ArgList * Ltime * Rust
+                 | Fun of VarDT * LtimeList * ArgList * Ltime * Rust * Rust
                  | Print of ExpDT
 end;
 
@@ -34,6 +35,7 @@ struct
       and ExpDT = Undef of unit
                  | Const of int
                  | Var of VarDT
+                 | Ref of VarDT
                  | Plus of ExpDT * ExpDT
                  | Call of VarDT * ArgList
 
@@ -53,6 +55,6 @@ struct
                  | Block of Rust * Rust
                  | Let of VarDT * ExpDT * Rust
                  | Ass of VarDT * ExpDT
-                 | Fun of VarDT * LtimeList * ArgList * Ltime * Rust
+                 | Fun of VarDT * LtimeList * ArgList * Ltime * Rust * Rust
                  | Print of ExpDT
 end;

@@ -31,8 +31,8 @@ rust: SEMI rust (Comp(Skip (), rust))
     | block rust (Block (block, rust))
     | exp SEMI rust  (Comp (Exp exp, rust))
     | llet  (llet)
-    | ass   (ass)
-    | ffun rust  (Comp (ffun, rust))
+    | ass SEMI rust  (Comp (ass, rust))
+    | ffun (ffun)
     | print SEMI rust   (Comp(print, rust))
     |    (Empty ())
 
@@ -40,8 +40,10 @@ block: LBRA rust RBRA   (rust)
 
 exp: CONST (Const CONST)
    | varId (Var varId)
+   | AMP varId (Ref varId)
    | exp PLUS exp  (Plus (exp1, exp2))
    | call  (call)
+
 
 call: funId LPAR aarg RPAR  (Call (funId, aarg))
 
@@ -54,9 +56,9 @@ arg: AMP varId (ArgConcat (EmptyLT (), varId, EmptyAL ()))
 llet: LET varId SEMI rust (Let (varId, Undef (), rust))
     | LET varId ASS exp SEMI rust  (Let (varId, exp, rust))
 
-ass: varId ASS exp SEMI (Ass (varId, exp))
+ass: varId ASS exp (Ass (varId, exp))
 
-ffun: FUN funId lltime LPAR ppar RPAR ret block  (Fun (funId, lltime, ppar, ret, block))
+ffun: FUN funId lltime LPAR ppar RPAR ret block rust  (Fun (funId, lltime, ppar, ret, block, rust))
 
 lltime: LCHE ltime RCHE (ltime)
       | (EmptyLL ())
