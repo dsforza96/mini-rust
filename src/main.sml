@@ -23,7 +23,7 @@ struct
 		  	| LocToClose (Closure (a, r, l)) = (a, r, l)
 
 		val lox = ref undef
-		val newLoc = fn () => let val _ = lox := (!lox) - 1 in !lox  end
+		val newLoc = fn () => let val _ = lox := (!lox) - 1 in Loc (!lox)  end
 
 		fun saveReturn (x: int * (LocClos * int) list) =
 										let	val _ = return := #1 (x) in x end
@@ -40,7 +40,7 @@ struct
 			| EnqueueArgs (D.ArgConcat (ltimeP, varP, alP), D.ArgConcat (ltimeA, varA, alA), funEnv, env, store) =
 				let val value = findInStore (store, findInEnv (env, varA))
 					val loc = newLoc ()
-					in EnqueueArgs (alP, alA, (varP, Loc loc)::funEnv, env, (Loc loc, value)::store)
+					in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, value)::store)
 				end
 
 		fun checkInEnv (env, id) = #1 (valOf (List.find
@@ -92,7 +92,7 @@ struct
 					| check (env, D.Block (r, s), store) = check (env, s,
 														   check (env, r, store))
 					| check (env, D.Let (v, e, r), store) =
-						let val llox = Loc (newLoc ())
+						let val llox = newLoc ()
 							val newEnv = (v, llox)::env
 							val exp = checkExp (env, e, store)
 							in check (newEnv, r, (llox, #1 exp)::(#2 exp))
@@ -147,7 +147,7 @@ struct
 						| eval (env, D.Block (r, s), store) =
 							eval (env, s, eval (env, r, store))
 						| eval (env, D.Let (v, e, r), store) =
-						 	let val llox = Loc (newLoc ())
+						 	let val llox = newLoc ()
 								val newEnv = (v, llox)::env
 								val exp = evalExp (env, e, store)
 								in eval (newEnv, r,
