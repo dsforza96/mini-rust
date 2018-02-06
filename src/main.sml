@@ -11,16 +11,16 @@ struct
 	local
 
 		datatype LocClos = Loc of int
-						 | Closure of  D.ArgList * D.Rust *
-						 			   (D.VarDT * LocClos) list
+						 | Closure of  D.ArgList * D.Ltime list * D.Ltime * D.Rust
+						 								* (D.VarDT * LocClos) list
 
 		val undef = ~1
 		val return = ref 1
 		fun LocToInt (Loc lox) = lox
-		  	| LocToInt (Closure (a, r, l)) = undef
+		  	| LocToInt (Closure (a, ltl, lt, r, l)) = undef
 
 		fun LocToClose (Loc lox) = (D.EmptyAL (), D.Empty (), [])
-		  	| LocToClose (Closure (a, r, l)) = (a, r, l)
+		  	| LocToClose (Closure (a, ltl, lt, r, l) = (a, ltl, lt, r, l)
 
 		val lox = ref undef
 		val newLoc = fn () => let val _ = lox := (!lox) - 1 in Loc (!lox)  end
@@ -42,6 +42,16 @@ struct
 					val loc = newLoc ()
 					in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, value)::store)
 				end
+
+		fun findLtime (D.EmptyAL (), D.EmptyAL (), ltList, lt) = []
+			| findLtime (D.EmptyAL (), parL, ltList, lt) = []
+			| findLtime (ArgL, D.EmptyAL (), ltList, lt) = []
+			| findLtime (D.ArgConcat (ltimeA, varA, alA),
+										D.ArgConcat (ltimeP, varP, alP), ltList, lt) =
+						val _ = List.find (fn x : Ltime => x = ltimeP) ltList
+							in if ltimeP = lt then varA::findLtime(alA, alP, ltList, lt)
+								 else findLtime(alA, alP, ltList, lt)
+						end
 
 		fun checkInEnv (env, id) = #1 (valOf (List.find
 								(fn x : (D.VarDT * LocClos)	=> #2 x = id) env))
@@ -77,12 +87,14 @@ struct
 										val p2 = checkExp (env, y, #2 p1)
 										in (#1 p1 + #1 p2, #2 p2)
 									end
-					| checkExp (env, D.Call(f, al), store) =
+					| checkExp (env, D.Call(f, al), store, ltEnv) =
 						let val closure = LocToClose (findInEnv (env, f))
+							val newLtime = (V "$", findLtime (al, #1 closure, #2 closure,
+																	#3 closure))
 							val newEnvStore = EnqueueArgs ((#1 closure), al,
-														   (#3 closure), env, store)
+														   (#5 closure), env, store)
 							in saveReturn ((!return),
-							check (#1 newEnvStore, #2 closure, #2 newEnvStore))
+							check (#1 newEnvStore, #4 closure, #2 newEnvStore, newLtime::ltEnv))
 						end
 				and check (env, D.Empty r, store) = store
 					| check (env, D.Skip r, store) = store
@@ -97,19 +109,23 @@ struct
 							val exp = checkExp (env, e, store)
 							in check (newEnv, r, (llox, #1 exp)::(#2 exp))
 						end
-					| check (env, D.Ass (v, e), store) =
+					| check (env, D.Ass (v, e), store, ltEnv) =
 						let val exp = checkExp (env, e, store)
-							in ((findInEnv (env, v)), #1 (exp))::(#2 (exp))
+							val lastLtime = List.nth(ltEnv, 0)
+							val newLtime = if (#1 lastLtime) = "$" then (v, #2 lastLtime)
+							in if (#1 lastLtime) = "$" then
+										(((findInEnv (env, v)), #1 (exp))::(#2 (exp)),
+																										(v, #2 lastLtime)::ltEnv)
+								 else (((findInEnv (env, v)), #1 (exp))::(#2 (exp)), ltEnv)
 						end
 					| check (env, D.Fun (f, ll, al, ltime, body, rust), store) =
-						let val newEnv = (f, Closure (al, body, env))::env
+						let val newEnv = (f, Closure (al, ll, ltime, body, env))::env
 							in check (newEnv, rust, store)
 						end
 					| check (env, D.Print e, store) =
 						let val exp = checkExp (env, e, store)
 							in #2 exp
 						end
-
 
 				val _ = check ([], tree, [])
 				in tree
@@ -131,8 +147,8 @@ struct
 				 	| evalExp (env, D.Call(f, al), store) =
 						let val closure = LocToClose (findInEnv (env, f))
 							val newEnvStore = EnqueueArgs ((#1 closure), al,
-														   (#3 closure), env, store)
-							val newStore = eval (#1 newEnvStore, #2 closure, #2 newEnvStore)
+														   (#5 closure), env, store)
+							val newStore = eval (#1 newEnvStore, #4 closure, #2 newEnvStore)
 				 			in (!return, newStore)
 				 		end
 				and eval (env, D.Empty r, store) = store
@@ -158,7 +174,7 @@ struct
 								in ((findInEnv(env, v)), #1 (exp))::(#2 (exp))
 							end
 						| eval (env, D.Fun (f, ll, al, ltime, body, rust), store) =
-							let val newEnv = (f, Closure (al, body, env))::env
+							let val newEnv = (f, Closure (al, [], D.EmptyLT (), body, env))::env
 								in eval (newEnv, rust, store)
 							end
 						| eval (env, D.Print e, store) =
