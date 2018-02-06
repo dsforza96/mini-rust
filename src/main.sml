@@ -115,11 +115,11 @@ struct
 									end
 					| checkExp (env, D.Call(f, al), store) =
 						let val closure = LocToClose (findInEnv (env, f))
-							val _ = ltEnv :=  (D.V "$", findLtime (al,
-								#1 closure, #2 closure, #3 closure))::(!ltEnv)
 							val newEnvStore = EnqueueArgs ((#1 closure), al,
 														   (#5 closure), env, store)
 							val newStore = check (#1 newEnvStore, #4 closure, #2 newEnvStore)
+							val _ = ltEnv :=  (D.V "$", findLtime (al,
+								#1 closure, #2 closure, #3 closure))::(!ltEnv)
 							val _ = valOf (List.find (fn x => (!returnVar) = x)
 									(rederArgs (al, #1 closure,
 											  #2 closure, #3 closure)))
