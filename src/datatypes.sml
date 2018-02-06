@@ -11,9 +11,6 @@ sig datatype VarDT = V of string
       and Ltime = EmptyLT of unit
                  | L of string
 
-      and LtimeList = EmptyLL of unit
-                 | LtimeConcat of Ltime * LtimeList
-
       and ArgList = EmptyAL of unit
                  | ArgConcat of Ltime * VarDT * ArgList
 
@@ -24,7 +21,7 @@ sig datatype VarDT = V of string
                  | Block of Rust * Rust
                  | Let of VarDT * ExpDT * Rust
                  | Ass of VarDT * ExpDT
-                 | Fun of VarDT * LtimeList * ArgList * Ltime * Rust * Rust
+                 | Fun of VarDT * Ltime list * ArgList * Ltime * Rust * Rust
                  | Print of ExpDT
 end;
 
@@ -42,9 +39,6 @@ struct
       and Ltime = EmptyLT of unit
                  | L of string
 
-      and LtimeList = EmptyLL of unit
-                 | LtimeConcat of Ltime * LtimeList
-
       and ArgList = EmptyAL of unit
                  | ArgConcat of Ltime * VarDT * ArgList
 
@@ -55,6 +49,6 @@ struct
                  | Block of Rust * Rust
                  | Let of VarDT * ExpDT * Rust
                  | Ass of VarDT * ExpDT
-                 | Fun of VarDT * LtimeList * ArgList * Ltime * Rust * Rust
+                 | Fun of VarDT * Ltime list * ArgList * Ltime * Rust * Rust
                  | Print of ExpDT
 end;

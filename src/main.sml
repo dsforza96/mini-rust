@@ -15,12 +15,12 @@ struct
 						 								* (D.VarDT * LocClos) list
 
 		val undef = ~1
-		val return = ref 1
+		val return = ref 0
 		fun LocToInt (Loc lox) = lox
 		  	| LocToInt (Closure (a, ltl, lt, r, l)) = undef
 
-		fun LocToClose (Loc lox) = (D.EmptyAL (), D.Empty (), [])
-		  	| LocToClose (Closure (a, ltl, lt, r, l) = (a, ltl, lt, r, l)
+		fun LocToClose (Loc lox) = (D.EmptyAL (), [], D.EmptyLT (), D.Empty (), [])
+		  	| LocToClose (Closure (a, ltl, lt, r, l)) = (a, ltl, lt, r, l)
 
 		val lox = ref undef
 		val newLoc = fn () => let val _ = lox := (!lox) - 1 in Loc (!lox)  end
@@ -30,6 +30,10 @@ struct
 
 		fun findInEnv (env, id) = #2 (valOf (List.find
 								(fn x : (D.VarDT * LocClos)	=> #1 x = id) env))
+
+		fun findInEnvLt (env , id) = #2 (getOpt ((List.find
+								(fn x : (D.VarDT * (D.VarDT list)) => #1 x = id) (!env)),
+								(D.V " ", [])))
 
 		fun findInStore (store, loc) = #2 (valOf (List.find
 								(fn x : (LocClos * int) => #1 x = loc) store))
@@ -47,8 +51,8 @@ struct
 			| findLtime (D.EmptyAL (), parL, ltList, lt) = []
 			| findLtime (ArgL, D.EmptyAL (), ltList, lt) = []
 			| findLtime (D.ArgConcat (ltimeA, varA, alA),
-										D.ArgConcat (ltimeP, varP, alP), ltList, lt) =
-						val _ = List.find (fn x : Ltime => x = ltimeP) ltList
+						 D.ArgConcat (ltimeP, varP, alP), ltList, lt) =
+						let val _ = List.find (fn x : D.Ltime => x = ltimeP) ltList
 							in if ltimeP = lt then varA::findLtime(alA, alP, ltList, lt)
 								 else findLtime(alA, alP, ltList, lt)
 						end
@@ -71,12 +75,18 @@ struct
 				handle RustParser.ParseError => raise RustError;
 				val _ = TextIO.closeIn inStream;
 
+				val ltEnv = ref [(D.V "dummy", [])]
+
+				fun evalVar (D.V v) = v
+
 				fun checkExp (env, D.Undef (), store) = (undef, store)
 				 	| checkExp (env, D.Const k, store) = (k, store)
 					| checkExp (env, D.Var v, store) =
 							let val valueV = #1 (findInStore (store,
 												 findInEnv (env, v)), store)
-									in if valueV > 0 then (valueV, store)
+								val varLtList  = findInEnvLt(ltEnv, v)
+								val _ = List.map (fn x => findInEnv(env, x)) varLtList
+								in if valueV >= 0 then (valueV, store)
 									else let val _ = checkInEnv(env, Loc (valueV))
 									in (valueV, store) end
 							end
@@ -87,14 +97,14 @@ struct
 										val p2 = checkExp (env, y, #2 p1)
 										in (#1 p1 + #1 p2, #2 p2)
 									end
-					| checkExp (env, D.Call(f, al), store, ltEnv) =
+					| checkExp (env, D.Call(f, al), store) =
 						let val closure = LocToClose (findInEnv (env, f))
-							val newLtime = (V "$", findLtime (al, #1 closure, #2 closure,
-																	#3 closure))
+							val _ = ltEnv := (D.V "$", findLtime (al,
+								#1 closure, #2 closure, #3 closure))::(!ltEnv)
 							val newEnvStore = EnqueueArgs ((#1 closure), al,
 														   (#5 closure), env, store)
 							in saveReturn ((!return),
-							check (#1 newEnvStore, #4 closure, #2 newEnvStore, newLtime::ltEnv))
+							check (#1 newEnvStore, #4 closure, #2 newEnvStore))
 						end
 				and check (env, D.Empty r, store) = store
 					| check (env, D.Skip r, store) = store
@@ -107,16 +117,21 @@ struct
 						let val llox = newLoc ()
 							val newEnv = (v, llox)::env
 							val exp = checkExp (env, e, store)
+							val lastLtime: (D.VarDT * (D.VarDT list)) =
+											List.nth(!ltEnv, 0)
+							val _ = if (#1 lastLtime) = (D.V "$") then
+										ltEnv := (v, #2 lastLtime)::(!ltEnv)
+									else ()
 							in check (newEnv, r, (llox, #1 exp)::(#2 exp))
 						end
-					| check (env, D.Ass (v, e), store, ltEnv) =
+					| check (env, D.Ass (v, e), store) =
 						let val exp = checkExp (env, e, store)
-							val lastLtime = List.nth(ltEnv, 0)
-							val newLtime = if (#1 lastLtime) = "$" then (v, #2 lastLtime)
-							in if (#1 lastLtime) = "$" then
-										(((findInEnv (env, v)), #1 (exp))::(#2 (exp)),
-																										(v, #2 lastLtime)::ltEnv)
-								 else (((findInEnv (env, v)), #1 (exp))::(#2 (exp)), ltEnv)
+							val lastLtime: (D.VarDT * (D.VarDT list)) =
+											List.nth(!ltEnv, 0)
+							val _ = if (#1 lastLtime) = (D.V "$") then
+										ltEnv := (v, #2 lastLtime)::(!ltEnv)
+									else ()
+							in ((findInEnv (env, v)), #1 (exp))::(#2 (exp))
 						end
 					| check (env, D.Fun (f, ll, al, ltime, body, rust), store) =
 						let val newEnv = (f, Closure (al, ll, ltime, body, env))::env
