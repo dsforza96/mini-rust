@@ -16,6 +16,7 @@ struct
 
 		val undef = ~1
 		val return = ref 0
+		val returnVar = ref (D.V "dummy")
 		fun LocToInt (Loc lox) = lox
 		  	| LocToInt (Closure (a, ltl, lt, r, l)) = undef
 
@@ -25,8 +26,13 @@ struct
 		val lox = ref undef
 		val newLoc = fn () => let val _ = lox := (!lox) - 1 in Loc (!lox)  end
 
-		fun saveReturn (x: int * (LocClos * int) list) =
-										let	val _ = return := #1 (x) in x end
+		fun evalVar (D.V v) = v
+
+		fun saveReturn (x: D.VarDT * int * (LocClos * int) list) =
+						let val _ = returnVar := #1 x
+							val _ = return := #2 x
+							in #3 x
+						end
 
 		fun findInEnv (env, id) = #2 (valOf (List.find
 								(fn x : (D.VarDT * LocClos)	=> #1 x = id) env))
@@ -57,6 +63,16 @@ struct
 								 else findLtime(alA, alP, ltList, lt)
 						end
 
+		fun rederArgs (D.EmptyAL (), D.EmptyAL (), ltList, lt) = []
+			| rederArgs (D.EmptyAL (), parL, ltList, lt) = []
+			| rederArgs (ArgL, D.EmptyAL (), ltList, lt) = []
+			| rederArgs (D.ArgConcat (ltimeA, varA, alA),
+				 		 D.ArgConcat (ltimeP, varP, alP), ltList, lt) =
+						 let val _ = List.find (fn x : D.Ltime => x = ltimeP) ltList
+							 in if ltimeP = lt then varP::findLtime(alA, alP, ltList, lt)
+								  else findLtime(alA, alP, ltList, lt)
+						 end
+
 		fun checkInEnv (env, id) = #1 (valOf (List.find
 								(fn x : (D.VarDT * LocClos)	=> #2 x = id) env))
 
@@ -77,8 +93,6 @@ struct
 
 				val ltEnv = ref [(D.V "dummy", [])]
 
-				fun evalVar (D.V v) = v
-
 				fun checkExp (env, D.Undef (), store) = (undef, store)
 				 	| checkExp (env, D.Const k, store) = (k, store)
 					| checkExp (env, D.Var v, store) =
@@ -87,8 +101,10 @@ struct
 								val varLtList  = findInEnvLt(ltEnv, v)
 								val _ = List.map (fn x => findInEnv(env, x)) varLtList
 								in if valueV >= 0 then (valueV, store)
-									else let val _ = checkInEnv(env, Loc (valueV))
-									in (valueV, store) end
+									else
+										let val _ = checkInEnv(env, Loc (valueV))
+											in (valueV, store)
+										end
 							end
 					| checkExp (env, D.Ref r, store) = (LocToInt
 												(findInEnv (env, r)), store)
@@ -99,18 +115,24 @@ struct
 									end
 					| checkExp (env, D.Call(f, al), store) =
 						let val closure = LocToClose (findInEnv (env, f))
-							val _ = ltEnv := (D.V "$", findLtime (al,
+							val _ = ltEnv :=  (D.V "$", findLtime (al,
 								#1 closure, #2 closure, #3 closure))::(!ltEnv)
 							val newEnvStore = EnqueueArgs ((#1 closure), al,
 														   (#5 closure), env, store)
-							in saveReturn ((!return),
-							check (#1 newEnvStore, #4 closure, #2 newEnvStore))
+							val newStore = check (#1 newEnvStore, #4 closure, #2 newEnvStore)
+							val _ = valOf (List.find (fn x => (!returnVar) = x)
+									(rederArgs (al, #1 closure,
+											  #2 closure, #3 closure)))
+							in ((!return), newStore)
 						end
 				and check (env, D.Empty r, store) = store
 					| check (env, D.Skip r, store) = store
 				 	| check (env, D.Comp (r, s), store) = check (env, s,
 														  check (env, r, store))
-					| check (env, D.Exp e, store) = #2 (checkExp (env, e, store))
+					| check (env, D.Exp e, store) =
+						let val exp = (checkExp (env, e, store))
+							in #2 (checkExp (env, e, store))
+						end
 					| check (env, D.Block (r, s), store) = check (env, s,
 														   check (env, r, store))
 					| check (env, D.Let (v, e, r), store) =
@@ -136,6 +158,11 @@ struct
 					| check (env, D.Fun (f, ll, al, ltime, body, rust), store) =
 						let val newEnv = (f, Closure (al, ll, ltime, body, env))::env
 							in check (newEnv, rust, store)
+						end
+					| check (env, D.BlockFun (r, v), store) =
+						let val newStore = check (env, r, store)
+							val resVal = checkExp (env, D.Var v, newStore)
+							in saveReturn (v, #1 resVal, #2 resVal)
 						end
 					| check (env, D.Print e, store) =
 						let val exp = checkExp (env, e, store)
@@ -172,7 +199,6 @@ struct
 							eval (env, s, eval (env, r, store))
 						| eval (env, D.Exp e, store) =
 							let val exp = (evalExp (env, e, store))
-							    val _ = saveReturn(#1 exp, #2 exp)
 								in #2 (exp)
 							end
 						| eval (env, D.Block (r, s), store) =
@@ -191,6 +217,11 @@ struct
 						| eval (env, D.Fun (f, ll, al, ltime, body, rust), store) =
 							let val newEnv = (f, Closure (al, [], D.EmptyLT (), body, env))::env
 								in eval (newEnv, rust, store)
+							end
+						| eval (env, D.BlockFun (r, v), store) =
+							let val newStore = eval (env, r, store)
+								val resVal = evalExp (env, D.Var v, newStore)
+								in saveReturn (v, #1 resVal, #2 resVal)
 							end
 						| eval (env, D.Print e, store) =
 							let val exp = evalExp (env, e, store)

@@ -1,10 +1,10 @@
-fn sum <'a>(x: &'a int, y: &'a int) -> &'a int{
-    x;
+fn dummy <'a>(x: &'a int, y: &'b int) -> &'a int{
+    y
 }
     let w = 10;
     let res;
     {
         let q = 5;
-        res = sum (&w, &q);
+        res = dummy (&w, &q);
     }
     println!(res);

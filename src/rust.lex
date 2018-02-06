@@ -10,9 +10,13 @@ val eof = fn () => T.EOF(!lineNum, !lineNum);
 
 val perror = fn x => TextIO.output(TextIO.stdErr, x ^ "\n");
 
+val trim = fn s => List.nth((String.tokens(fn c => c = #" " orelse c = #"\t"
+                                     orelse c = #"\n" orelse c = #"\r") s), 0)
+
 %%
 
 %full
+%count
 %header (functor RustLexFun(structure Tokens: Rust_TOKENS));
 
 alpha = [A-Za-z_-];
@@ -22,30 +26,32 @@ eol = ("\r\n"|"\n"|"\r");
 
 %%
 
-{eol}	                      => (lineNum := (!lineNum) + 1; lex());
-{ws}+	                      => (lex());
+{eol}	                            => (lex());
+{ws}+	                            => (lex());
 
-"+"                           => (T.PLUS(!lineNum, !lineNum));
-"let"                         => (T.LET(!lineNum, !lineNum));
-"fn"                          => (T.FUN(!lineNum, !lineNum));
-"int"                         => (T.INT(!lineNum, !lineNum));
-"="                           => (T.ASS(!lineNum, !lineNum));
-":"                           => (T.COLON(!lineNum, !lineNum));
-";"                           => (T.SEMI(!lineNum, !lineNum));
-","                           => (T.COMMA(!lineNum, !lineNum));
-"->"                          => (T.ARROW(!lineNum, !lineNum));
-"("                           => (T.LPAR(!lineNum, !lineNum));
-")"                           => (T.RPAR(!lineNum, !lineNum));
-"{"                           => (T.LBRA(!lineNum, !lineNum));
-"}"                           => (T.RBRA(!lineNum, !lineNum));
-"<"                           => (T.LCHE(!lineNum, !lineNum));
-">"                           => (T.RCHE(!lineNum, !lineNum));
-"&"                           => (T.AMP(!lineNum, !lineNum));
-"println!"                    => (T.PRINT(!lineNum, !lineNum));
+"+"                                 => (T.PLUS(!yylineno, !yylineno));
+"let"                               => (T.LET(!yylineno, !yylineno));
+"fn"                                => (T.FUN(!yylineno, !yylineno));
+"int"                               => (T.INT(!yylineno, !yylineno));
+"="                                 => (T.ASS(!yylineno, !yylineno));
+":"                                 => (T.COLON(!yylineno, !yylineno));
+";"                                 => (T.SEMI(!yylineno, !yylineno));
+","                                 => (T.COMMA(!yylineno, !yylineno));
+"->"                                => (T.ARROW(!yylineno, !yylineno));
+"("                                 => (T.LPAR(!yylineno, !yylineno));
+")"                                 => (T.RPAR(!yylineno, !yylineno));
+"{"                                 => (T.LBRA(!yylineno, !yylineno));
+"}"                                 => (T.RBRA(!yylineno, !yylineno));
+"<"                                 => (T.LCHE(!yylineno, !yylineno));
+">"                                 => (T.RCHE(!yylineno, !yylineno));
+"&"                                 => (T.AMP(!yylineno, !yylineno));
+"println!"                          => (T.PRINT(!yylineno, !yylineno));
 
-"'"{alpha}({alpha}|{digit})*  => (T.LTIME(yytext, !lineNum, !lineNum));
-{alpha}({alpha}|{digit})*     => (T.ID(yytext, !lineNum, !lineNum));
-{digit}+                      => (T.CONST(valOf(Int.fromString yytext), !lineNum, !lineNum));
+"'"{alpha}({alpha}|{digit})*        => (T.LTIME(yytext, !yylineno, !yylineno));
+{alpha}({alpha}|{digit})*({ws}|{eol})*"}"
+                                    => (T.IDRET(trim yytext, !yylineno, !yylineno));
+{alpha}({alpha}|{digit})*           => (T.ID(yytext, !yylineno, !yylineno));
+{digit}+                            => (T.CONST(valOf(Int.fromString yytext), !yylineno, !yylineno));
 
-.                             => (perror("Error, line " ^ (Int.toString (!lineNum))
+.                                   => (perror("Error, line " ^ (Int.toString (!yylineno))
                                          ^ ", ignoring bad character: " ^ yytext); lex());

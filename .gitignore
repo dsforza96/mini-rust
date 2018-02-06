@@ -3,6 +3,7 @@ src/rust.grm.sig
 src/rust.grm.sml
 src/rust.grm.desc
 src/.cm
+appunti.txt
 
 
 # Created by https://www.gitignore.io/api/linux,macos,windows
