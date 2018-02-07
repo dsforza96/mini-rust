@@ -231,6 +231,16 @@ struct
 
 					| check (env, D.Print e, store) =
 						let val exp = checkExp (env, e, store)
+								val var = ref (D.V "")
+										val value = ref (#1 exp)
+										val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
+																												in value := findInStore (store, Loc (!value))
+																										end
+										val _ = if !value = undef
+														then let val _ = TextIO.output(TextIO.stdErr,
+																			"error:  use of possibly uninitialized variable `" ^ "" ^ "`")
+																		 in raise RustError
+																 end else ()
 							in #2 exp
 						end
 
@@ -320,8 +330,13 @@ struct
 
 						| eval (env, D.Print e, store) =
 							let val exp = evalExp (env, e, store)
+									val var = ref (D.V "")
+									val value = ref (#1 exp)
+									val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
+																											in value := findInStore (store, Loc (!value))
+																									end
 								val _ = TextIO.output(TextIO.stdOut,
-										Int.toString (#1 exp) ^ "\n")
+										Int.toString (!value) ^ "\n")
 								in #2 exp
 							end
 
