@@ -1,5 +1,7 @@
 structure T = Tokens
 
+exception RustError
+
 type pos = int
 type svalue = T.svalue
 type ('a, 'b) token = ('a, 'b) T.token
@@ -8,10 +10,12 @@ type lexresult = (svalue, pos) token
 val lineNum = ref 0;
 val eof = fn () => T.EOF(!lineNum, !lineNum);
 
-val perror = fn x => TextIO.output(TextIO.stdErr, x ^ "\n");
+val perror = fn ln => fn ch =>  TextIO.output(TextIO.stdErr, "error[" ^ Int.toString ln ^
+                                          "]: found `" ^ ch ^ "`");
 
 val trim = fn s => List.nth((String.tokens(fn c => c = #" " orelse c = #"\t"
-                                     orelse c = #"\n" orelse c = #"\r") s), 0)
+                                     orelse c = #"\n" orelse c = #"\r"
+                                     orelse c = #"}") s), 0)
 
 %%
 
@@ -32,7 +36,7 @@ eol = ("\r\n"|"\n"|"\r");
 "+"                                 => (T.PLUS(!yylineno, !yylineno));
 "let"                               => (T.LET(!yylineno, !yylineno));
 "fn"                                => (T.FUN(!yylineno, !yylineno));
-"int"                               => (T.INT(!yylineno, !yylineno));
+"i32"                               => (T.INT(!yylineno, !yylineno));
 "="                                 => (T.ASS(!yylineno, !yylineno));
 ":"                                 => (T.COLON(!yylineno, !yylineno));
 ";"                                 => (T.SEMI(!yylineno, !yylineno));
@@ -53,5 +57,4 @@ eol = ("\r\n"|"\n"|"\r");
 {alpha}({alpha}|{digit})*           => (T.ID(yytext, !yylineno, !yylineno));
 {digit}+                            => (T.CONST(valOf(Int.fromString yytext), !yylineno, !yylineno));
 
-.                                   => (perror("Error, line " ^ (Int.toString (!yylineno))
-                                         ^ ", ignoring bad character: " ^ yytext); lex());
+.                                   => (perror (!yylineno)  yytext; raise RustError);

@@ -1,4 +1,4 @@
-fn dummy <'a>(x: &'a int, y: &'b int) -> &'a int{
+fn dummy <'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32{
     y
 }
     let w = 10;
@@ -7,4 +7,4 @@ fn dummy <'a>(x: &'a int, y: &'b int) -> &'a int{
         let q = 5;
         res = dummy (&w, &q);
     }
-    println!(res);
+println!(res);

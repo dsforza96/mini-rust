@@ -40,13 +40,14 @@ rust: SEMI rust (Comp(Skip (), rust))
 block: LBRA rust RBRA   (rust)
 
 exp: expPlus    (expPlus)
-   | expPlus PLUS expPlus  (Plus (expPlus1, expPlus2))
    | call  (call)
-   | LPAR exp RPAR  (exp)
+   | LPAR call RPAR  (call)
 
 expPlus: CONST (Const CONST)
        | varId (Var varId)
        | AMP varId (Ref varId)
+       | expPlus PLUS expPlus  (Plus (expPlus1, expPlus2))
+       | LPAR expPlus RPAR  (expPlus)
 
 call: funId LPAR aarg RPAR  (Call (funId, aarg))
 
