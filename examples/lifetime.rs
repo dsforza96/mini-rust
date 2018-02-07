@@ -1,4 +1,4 @@
-fn dummy <'a, 'b>(x: &'a int, y: &'b int) -> &'a int{
+fn dummy <'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32{
     let r = x + 15;
     x
 }
