@@ -146,8 +146,8 @@ struct
 														then let val _ = TextIO.output(TextIO.stdErr,
 																	"error:  use of possibly uninitialized variable `" ^ evalVar v ^ "`")
 																	in raise RustError end
-														else let val _ = checkInEnv(env, Loc (valueV), v)
-																		in (valueV, store)
+														else let val newVal = followRef(v, valueV, env, store)
+																		in (#2 newVal, store)
 																	end
 								end
 
@@ -276,7 +276,11 @@ struct
 					| evalExp (env, D.Const k, store) = (k, store)
 
 					| evalExp (env, D.Var v, store) =
-						(findInStore (store, findInEnv (env, v)), store)
+								let val value = #1 (findInStore (store, findInEnv (env, v)), store)
+										in if value < undef
+												then (#2 (followRef(v, value, env, store)), store)
+												else (value, store)
+										end
 
 					| evalExp (env, D.Ref r, store) =
 						(LocToInt (findInEnv (env, r)),store)
