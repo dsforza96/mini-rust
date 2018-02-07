@@ -238,7 +238,7 @@ struct
 																										end
 										val _ = if !value = undef
 														then let val _ = TextIO.output(TextIO.stdErr,
-																			"error:  use of possibly uninitialized variable `" ^ "" ^ "`")
+																			"error:  use of possibly uninitialized variable `" ^ evalVar (!var) ^ "`")
 																		 in raise RustError
 																 end else ()
 							in #2 exp
