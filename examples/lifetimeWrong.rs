@@ -8,5 +8,5 @@ fn main (){
         let q = 5;
         res = dummy (&w, &q);
     }
-    println!(res);
+    println!("{}", res);
 }

@@ -2,7 +2,7 @@ structure D = DataTypes
 
 structure Rust :
 	sig val compile : string -> D.Rust
-		val execute : D.Rust -> int
+		val run : D.Rust -> int
 end =
 
 struct
@@ -49,20 +49,8 @@ struct
 		fun findInStore (store, loc) = #2 (valOf (List.find
 								(fn x : (LocClos * int) => #1 x = loc) store))
 
-		fun EnqueueArgs (D.EmptyAL (), D.EmptyAL (), funEnv, env, store) = (funEnv, store)
-			| EnqueueArgs (D.EmptyAL (), al, funEnv, env, store) = let val _ =
-					TextIO.output(TextIO.stdErr, "error: this function requires less parameters") in raise RustError end
-
-			| EnqueueArgs (al, D.EmptyAL (), funEnv, env, store) = let val _ =
-					TextIO.output(TextIO.stdErr, "error: this function requires more parameters") in raise RustError end
-
-			| EnqueueArgs (D.ArgConcat (ltimeP, varP, alP), D.ArgConcat (ltimeA, varA, alA), funEnv, env, store) =
-				let val value = findInStore (store, findInEnv (env, varA))
-					val loc = newLoc ()
-					in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, value)::store)
-				end
-
 		fun findLtime (D.EmptyAL (), D.EmptyAL (), ltList, lt) = []
+
 			| findLtime (D.EmptyAL (), parL, ltList, lt) = let val _ =
 					TextIO.output(TextIO.stdErr, "error: this function requires less parameters") in raise RustError end
 
@@ -110,24 +98,58 @@ struct
 
 				val ltEnv = ref [(D.V "dummy", [])]
 
-				fun checkExp (env, D.Undef (), store) = (undef, store)
+				fun EnqueueArgs (D.EmptyAL (), D.EmptyAL (), funEnv, env, store) = (funEnv, store)
+
+					| EnqueueArgs (D.EmptyAL (), al, funEnv, env, store) = let val _ =
+							TextIO.output(TextIO.stdErr, "error: this function requires less parameters") in raise RustError end
+
+					| EnqueueArgs (al, D.EmptyAL (), funEnv, env, store) = let val _ =
+							TextIO.output(TextIO.stdErr, "error: this function requires more parameters") in raise RustError end
+
+					| EnqueueArgs (D.ArgConcat (ltimeP, varP, alP), D.ArgConcat (ltimeA, varA, alA), funEnv, env, store) =
+						let val var = ref varA
+								val value = ref (#1 (checkExp(env, D.Var varA, store)))
+								val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
+																										in value := findInStore (store, Loc (!value))
+																								end
+								val _ = if !value = undef
+												then let val _ = TextIO.output(TextIO.stdErr,
+																	"error:  use of possibly uninitialized variable `" ^ evalVar (!var) ^ "`")
+																 in raise RustError
+														 end else ()
+								val loc = newLoc ()
+								in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, !value)::store)
+						end
+
+				and checkExp (env, D.Undef (), store) = (undef, store)
 
 				 	| checkExp (env, D.Const k, store) = (k, store)
 
 					| checkExp (env, D.Var v, store) =
-							let val valueV = #1 (findInStore (store,
-												 findInEnv (env, v)), store)
-								val varLtList  = findInEnvLt(ltEnv, v)
-								val _ = List.map (fn x => findInEnv(env, x)) varLtList
-								in if valueV >= 0 then (valueV, store)
-									else
-										let val _ = checkInEnv(env, Loc (valueV), v)
-											in (valueV, store)
-										end
-							end
+								let val valueV = #1 (findInStore (store,
+													 findInEnv (env, v)), store)
+									val varLtList  = findInEnvLt(ltEnv, v)
+									val _ = List.map (fn x => findInEnv(env, x)) varLtList
+									in if valueV >= 0 then (valueV, store)
+											else if valueV = undef
+														then let val _ = TextIO.output(TextIO.stdErr,
+																	"error:  use of possibly uninitialized variable `" ^ evalVar v ^ "`")
+																	in raise RustError end
+														else let val _ = checkInEnv(env, Loc (valueV), v)
+																		in (valueV, store)
+																	end
+								end
 
-					| checkExp (env, D.Ref r, store) = (LocToInt
-												(findInEnv (env, r)), store)
+					| checkExp (env, D.Ref r, store) =
+								let val var = r
+										val value = #1 (checkExp(env, D.Var r, store))
+										val _ = if value = undef
+											then let val _ = TextIO.output(TextIO.stdErr,
+																"error:  use of possibly uninitialized variable `" ^ evalVar var ^ "`")
+															 in raise RustError
+													 end else ()
+										in (LocToInt (findInEnv (env, r)), store)
+								end
 
 					| checkExp (env, D.Plus (x, y), store) =
 									let val p1 = checkExp (env, x, store)
@@ -216,9 +238,24 @@ struct
 				in tree
 			end
 
-		fun execute(prog) =
+		fun run(prog) =
 			let val _ = lox := undef
-				fun evalExp (env, D.Undef (), store) = (undef, store)
+
+				fun EnqueueArgs (D.EmptyAL (), D.EmptyAL (), funEnv, env, store) = (funEnv, store)
+
+					| EnqueueArgs (D.EmptyAL (), al, funEnv, env, store) = (funEnv, store)
+
+					| EnqueueArgs (al, D.EmptyAL (), funEnv, env, store) = (funEnv, store)
+
+					| EnqueueArgs (D.ArgConcat (ltimeP, varP, alP), D.ArgConcat (ltimeA, varA, alA), funEnv, env, store) =
+						let val var = ref varA
+								val value = ref (#1 (evalExp(env, D.Var varA, store)))
+								val _ = while !value < undef do value := findInStore (store, Loc (!value))
+							val loc = newLoc ()
+							in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, !value)::store)
+						end
+
+				and evalExp (env, D.Undef (), store) = (undef, store)
 
 					| evalExp (env, D.Const k, store) = (k, store)
 

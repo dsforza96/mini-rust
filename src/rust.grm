@@ -84,7 +84,7 @@ par: varId COLON AMP LTIME INT  (ArgConcat (L LTIME, varId, EmptyAL ()))
 ret: ARROW AMP LTIME INT    (L LTIME)
    | ARROW AMP INT  (EmptyLT ())
 
-print: PRINT LPAR exp RPAR (Print exp)
+print: PRINT exp RPAR (Print exp)
 
 varId: ID   (V ID)
 

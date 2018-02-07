@@ -4,5 +4,5 @@ fn main (){
         let b = 2;
         x = b;
     }
-    println!(x);
+    println!("{}", x);
 }

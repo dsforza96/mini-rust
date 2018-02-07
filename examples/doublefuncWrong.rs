@@ -5,13 +5,13 @@ fn main (){
             let k = 3;
             z = &k;
         }
-        println!(z);
+        println!("{}", z);
         x
     }
 
     fn dummy2 <'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32{
         let r = x + 15;
-        println!(x);
+        println!("{}", x);
         dummy1(&x, &y);
         x
     }
@@ -21,8 +21,8 @@ fn main (){
     {
         let p2 = 50;
         p1 = &p2;
-        println!(p1);
+        println!("{}", p1);
     }
     let a = dummy1(&w, &q);
-    println!(a);
+    println!("{}", a);
 }
