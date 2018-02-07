@@ -1,6 +1,7 @@
-fn sum (x: &i32) -> &i32 {
-    x
-}
+fn main (){
+    fn sum (x: &i32) -> &i32 {
+        x
+    }
     let q = 10;
     let w = 20;
     let p1;
@@ -11,3 +12,4 @@ fn sum (x: &i32) -> &i32 {
     }
     let a = sum(&w);
     println!(a);
+}

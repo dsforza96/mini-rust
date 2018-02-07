@@ -1,6 +1,8 @@
-let x = 4;
-{
-    let y = 5;
-    x = &y;
+fn main (){
+    let x = 4;
+    {
+        let y = 5;
+        x = &y;
+    }
+    println!(x);
 }
-println!(x);

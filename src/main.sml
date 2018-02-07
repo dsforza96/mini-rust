@@ -2,7 +2,7 @@ structure D = DataTypes
 
 structure Rust :
 	sig val compile : string -> D.Rust
-		val execute : D.Rust -> unit
+		val execute : D.Rust -> int
 end =
 
 struct
@@ -289,7 +289,7 @@ struct
 							end
 
 			val _ = eval ([], prog, []);	(* Env, prog, store *)
-			in ()
+			in 0
 		end
 	end
 end;

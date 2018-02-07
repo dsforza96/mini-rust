@@ -11,7 +11,7 @@ open DataTypes
 
 %term   SEMI | LBRA | RBRA | CONST of int | PLUS | LPAR | RPAR | COMMA | LET
         | ASS | FUN | LCHE | RCHE | LTIME of string | COLON | AMP | INT
-        | ARROW | PRINT | ID of string | IDRET of string | EOF
+        | ARROW | PRINT | ID of string | IDRET of string | MAIN | EOF
 
 %nonterm    start of Rust | rust of Rust | block of Rust | print of Rust
             | exp of ExpDT | expPlus of ExpDT | llet of Rust | ass of Rust
@@ -26,7 +26,7 @@ open DataTypes
 
 %%
 
-start: rust (rust)
+start: MAIN LPAR RPAR LBRA rust RBRA (rust)
 
 rust: SEMI rust (Comp(Skip (), rust))
     | block rust (Block (block, rust))

@@ -50,6 +50,7 @@ eol = ("\r\n"|"\n"|"\r");
 ">"                                 => (T.RCHE(!yylineno, !yylineno));
 "&"                                 => (T.AMP(!yylineno, !yylineno));
 "println!"                          => (T.PRINT(!yylineno, !yylineno));
+"fn"({ws}|{eol})+"main"             => (T.MAIN(!yylineno, !yylineno));
 
 "'"{alpha}({alpha}|{digit})*        => (T.LTIME(yytext, !yylineno, !yylineno));
 {alpha}({alpha}|{digit})*({ws}|{eol})*"}"
