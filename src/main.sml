@@ -49,24 +49,6 @@ struct
 		fun findInStore (store, loc) = #2 (valOf (List.find
 								(fn x : (LocClos * int) => #1 x = loc) store))
 
-		fun findLtime (D.EmptyAL (), D.EmptyAL (), ltList, lt) = []
-
-			| findLtime (D.EmptyAL (), parL, ltList, lt) = let val _ =
-					TextIO.output(TextIO.stdErr, "error: this function requires less parameters") in raise RustError end
-
-			| findLtime (ArgL, D.EmptyAL (), ltList, lt) = let val _ =
-					TextIO.output(TextIO.stdErr, "error: this function requires more parameters") in raise RustError end
-
-			| findLtime (D.ArgConcat (ltimeA, varA, alA),
-						 D.ArgConcat (ltimeP, varP, alP), ltList, lt) =
-						let val _ = valOf (List.find (fn x : D.Ltime => x = ltimeP) ltList)
-								handle Option => let val _ = TextIO.output(TextIO.stdErr,
-									"error:  use of undeclared lifetime name `" ^ evalLt ltimeP ^ "`")
-										in raise RustError end
-							in if ltimeP = lt then varA::findLtime(alA, alP, ltList, lt)
-								 else findLtime(alA, alP, ltList, lt)
-						end
-
 		fun rederArgs (D.EmptyAL (), D.EmptyAL (), ltList, lt) = []
 			| rederArgs (D.EmptyAL (), parL, ltList, lt) = []
 			| rederArgs (ArgL, D.EmptyAL (), ltList, lt) = []
@@ -121,6 +103,36 @@ struct
 								in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, !value)::store)
 						end
 
+				and findLtime (D.EmptyAL (), D.EmptyAL (), ltList, lt, env, store) = []
+
+					| findLtime (D.EmptyAL (), parL, ltList, lt, env, store) = let val _ =
+							TextIO.output(TextIO.stdErr, "error: this function requires less parameters") in raise RustError end
+
+					| findLtime (ArgL, D.EmptyAL (), ltList, lt, env, store) = let val _ =
+							TextIO.output(TextIO.stdErr, "error: this function requires more parameters") in raise RustError end
+
+					| findLtime (D.ArgConcat (ltimeA, varA, alA),
+								 D.ArgConcat (ltimeP, varP, alP), ltList, lt, env, store) =
+								let val _ = valOf (List.find (fn x : D.Ltime => x = ltimeP) ltList)
+										handle Option => let val _ = TextIO.output(TextIO.stdErr,
+											"error:  use of undeclared lifetime name `" ^ evalLt ltimeP ^ "`")
+												in raise RustError end
+
+										val var = ref varA
+										val value = ref (#1 (checkExp(env, D.Var varA, store)))
+										val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
+																												in value := findInStore (store, Loc (!value))
+																										end
+										val _ = if !value = undef
+														then let val _ = TextIO.output(TextIO.stdErr,
+																			"error:  use of possibly uninitialized variable `" ^ evalVar (!var) ^ "`")
+																		 in raise RustError
+																 end else ()
+
+									in if ltimeP = lt then (!var)::findLtime(alA, alP, ltList, lt, env, store)
+										 else findLtime(alA, alP, ltList, lt, env, store)
+								end
+
 				and checkExp (env, D.Undef (), store) = (undef, store)
 
 				 	| checkExp (env, D.Const k, store) = (k, store)
@@ -163,7 +175,7 @@ struct
 														   (#5 closure), env, store)
 							val newLtList = if (#2 closure) = [] andalso (#3 closure) = D.EmptyLT ()
 															then []
-															else findLtime (al,	#1 closure, #2 closure, #3 closure)
+															else findLtime (al,	#1 closure, #2 closure, #3 closure, env, store)
 							val _ = if (#2 closure) = [] andalso (#3 closure) = D.EmptyLT ()
 											then D.EmptyLT ()
 											else valOf (List.find (fn x : D.Ltime => x = (#3 closure)) (#2 closure))
