@@ -9,7 +9,6 @@ struct
 	exception RustError;
 
 	local
-
 		datatype LocClos = Loc of int
 						 | Closure of  D.ArgList * D.Ltime list * D.Ltime * D.Rust
 						 								* (D.VarDT * LocClos) list
