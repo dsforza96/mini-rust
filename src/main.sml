@@ -64,6 +64,26 @@ struct
 									handle Option => let val _ = TextIO.output(TextIO.stdErr,
 										"error: `" ^ evalVar v ^ "` does not live long enough")
 										in raise RustError end
+
+		fun findLtInEnv (env, id) = #2 (valOf (List.find
+								(fn x : (D.VarDT * LocClos)	=> #1 x = id) env))
+								handle Option => let val _ = TextIO.output(TextIO.stdErr,
+									"error:  `" ^ evalVar id ^ "` does not live long enough")
+									in raise RustError end
+
+		fun followRef (v, valueV, env, store) =
+					let val var = ref v
+							val value = ref valueV
+							val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
+																									in value := findInStore (store, Loc (!value))
+																							end
+							in if !value = undef
+								then let val _ = TextIO.output(TextIO.stdErr,
+																"error:  use of possibly uninitialized variable `" ^ evalVar (!var) ^ "`")
+													in raise RustError
+											end else (!var, !value)
+							end
+
 		in
 		fun compile (fileName) =
 			let val inStream = TextIO.openIn fileName;
@@ -89,18 +109,9 @@ struct
 							TextIO.output(TextIO.stdErr, "error: this function requires more parameters") in raise RustError end
 
 					| EnqueueArgs (D.ArgConcat (ltimeP, varP, alP), D.ArgConcat (ltimeA, varA, alA), funEnv, env, store) =
-						let val var = ref varA
-								val value = ref (#1 (checkExp(env, D.Var varA, store)))
-								val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
-																										in value := findInStore (store, Loc (!value))
-																								end
-								val _ = if !value = undef
-												then let val _ = TextIO.output(TextIO.stdErr,
-																	"error:  use of possibly uninitialized variable `" ^ evalVar (!var) ^ "`")
-																 in raise RustError
-														 end else ()
+						let val value = followRef(varA, (#1 (checkExp(env, D.Var varA, store))), env, store)
 								val loc = newLoc ()
-								in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, !value)::store)
+								in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, #2 value)::store)
 						end
 
 				and findLtime (D.EmptyAL (), D.EmptyAL (), ltList, lt, env, store) = []
@@ -117,20 +128,9 @@ struct
 										handle Option => let val _ = TextIO.output(TextIO.stdErr,
 											"error:  use of undeclared lifetime name `" ^ evalLt ltimeP ^ "`")
 												in raise RustError end
-
-										val var = ref varA
-										val value = ref (#1 (checkExp(env, D.Var varA, store)))
-										val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
-																												in value := findInStore (store, Loc (!value))
-																										end
-										val _ = if !value = undef
-														then let val _ = TextIO.output(TextIO.stdErr,
-																			"error:  use of possibly uninitialized variable `" ^ evalVar (!var) ^ "`")
-																		 in raise RustError
-																 end else ()
-
-									in if ltimeP = lt then (!var)::findLtime(alA, alP, ltList, lt, env, store)
-										 else findLtime(alA, alP, ltList, lt, env, store)
+										val var = followRef(varA, (#1 (checkExp(env, D.Var varA, store))), env, store)
+										in if ltimeP = lt then (#1 var)::findLtime(alA, alP, ltList, lt, env, store)
+										 		else findLtime(alA, alP, ltList, lt, env, store)
 								end
 
 				and checkExp (env, D.Undef (), store) = (undef, store)
@@ -141,7 +141,7 @@ struct
 								let val valueV = #1 (findInStore (store,
 													 findInEnv (env, v)), store)
 									val varLtList  = findInEnvLt(ltEnv, v)
-									val _ = List.map (fn x => findInEnv(env, x)) varLtList
+									val _ = List.map (fn x => findLtInEnv(env, x)) varLtList
 									in if valueV >= 0 then (valueV, store)
 											else if valueV = undef
 														then let val _ = TextIO.output(TextIO.stdErr,
@@ -243,16 +243,7 @@ struct
 
 					| check (env, D.Print e, store) =
 						let val exp = checkExp (env, e, store)
-								val var = ref (D.V "")
-										val value = ref (#1 exp)
-										val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
-																												in value := findInStore (store, Loc (!value))
-																										end
-										val _ = if !value = undef
-														then let val _ = TextIO.output(TextIO.stdErr,
-																			"error:  use of possibly uninitialized variable `" ^ evalVar (!var) ^ "`")
-																		 in raise RustError
-																 end else ()
+								val _ = followRef((D.V ""), #1 exp, env, store)
 							in #2 exp
 						end
 
@@ -263,18 +254,16 @@ struct
 		fun run(prog) =
 			let val _ = lox := undef
 
-				fun EnqueueArgs (D.EmptyAL (), D.EmptyAL (), funEnv, env, store) = (funEnv, store)
+			fun EnqueueArgs (D.EmptyAL (), D.EmptyAL (), funEnv, env, store) = (funEnv, store)
 
 					| EnqueueArgs (D.EmptyAL (), al, funEnv, env, store) = (funEnv, store)
 
 					| EnqueueArgs (al, D.EmptyAL (), funEnv, env, store) = (funEnv, store)
 
 					| EnqueueArgs (D.ArgConcat (ltimeP, varP, alP), D.ArgConcat (ltimeA, varA, alA), funEnv, env, store) =
-						let val var = ref varA
-								val value = ref (#1 (evalExp(env, D.Var varA, store)))
-								val _ = while !value < undef do value := findInStore (store, Loc (!value))
+						let val value = followRef(varA, #1 (evalExp(env, D.Var varA, store)), env, store)
 							val loc = newLoc ()
-							in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, !value)::store)
+							in EnqueueArgs (alP, alA, (varP, loc)::funEnv, env, (loc, #2 value)::store)
 						end
 
 				and evalExp (env, D.Undef (), store) = (undef, store)
@@ -342,13 +331,9 @@ struct
 
 						| eval (env, D.Print e, store) =
 							let val exp = evalExp (env, e, store)
-									val var = ref (D.V "")
-									val value = ref (#1 exp)
-									val _ = while !value < undef do let val _ = var := checkInEnv(env, Loc (!value), !var)
-																											in value := findInStore (store, Loc (!value))
-																									end
+									val value = followRef((D.V ""), #1 exp, env, store)
 								val _ = TextIO.output(TextIO.stdOut,
-										Int.toString (!value) ^ "\n")
+										Int.toString (#2 value) ^ "\n")
 								in #2 exp
 							end
 
