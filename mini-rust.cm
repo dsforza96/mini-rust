@@ -3,11 +3,11 @@
 Library
     structure Rust
 is
-    src/datatypes.sml
+    src/datatypes.sml (* Datatypes' declarations. *)
     src/rust.lex (* Lexer rules. *)
     src/rust.grm:MLYacc (* Parser rules. *)
-    src/glue.sml (* Build the parser *)
-    src/main.sml (* ??? *)
+    src/glue.sml (* Build the parser. *)
+    src/main.sml (* Rust structure, including Rust.compile and Rust.run. *)
     $/basis.cm (* SML/NJ’s Basis Library. *)
     $/ml-yacc-lib.cm (* Code written by Lucent. *)
     $smlnj/compiler/compiler.cm (* Structure Compiler. *)
