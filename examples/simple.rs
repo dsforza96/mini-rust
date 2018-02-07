@@ -1,5 +1,5 @@
 fn main (){
-    let x = 2;
+    let x;
     {
         let b = 2;
         x = b;

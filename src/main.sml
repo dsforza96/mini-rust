@@ -225,8 +225,14 @@ struct
 							val lastLtime: (D.VarDT * (D.VarDT list)) =
 											List.nth(!ltEnv, 0)
 							val _ = if (#1 lastLtime) = (D.V "$") then
-										ltEnv := (v, #2 lastLtime)::(!ltEnv)
-									else ()
+												ltEnv := (v, #2 lastLtime)::(!ltEnv)
+											else ()
+							val _ = if findInStore(store, findInEnv(env, v)) <> undef then
+												let val _ = TextIO.output(TextIO.stdErr,
+															"error:  cannot assign twice to immutable variable `" ^ evalVar v ^ "`")
+														in raise RustError
+												end
+											else ()
 							in ((findInEnv (env, v)), #1 (exp))::(#2 (exp))
 						end
 
