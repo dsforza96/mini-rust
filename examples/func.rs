@@ -1,4 +1,4 @@
-fn sum (x: &int) -> &int {
+fn sum (x: &i32) -> &i32 {
     x
 }
     let q = 10;

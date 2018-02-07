@@ -139,8 +139,12 @@ struct
 						let val closure = LocToClose (findInEnv (env, f))
 							val newEnvStore = EnqueueArgs ((#1 closure), al,
 														   (#5 closure), env, store)
-							val newLtList = findLtime (al,	#1 closure, #2 closure, #3 closure)
-							val _ = valOf (List.find (fn x : D.Ltime => x = (#3 closure)) (#2 closure))
+							val newLtList = if (#2 closure) = [] andalso (#3 closure) = D.EmptyLT ()
+															then []
+															else findLtime (al,	#1 closure, #2 closure, #3 closure)
+							val _ = if (#2 closure) = [] andalso (#3 closure) = D.EmptyLT ()
+											then D.EmptyLT ()
+											else valOf (List.find (fn x : D.Ltime => x = (#3 closure)) (#2 closure))
 									handle Option => let val _ = TextIO.output(TextIO.stdErr,
 										"error:  use of undeclared lifetime name `" ^ evalLt (#3 closure) ^ "`")
 									in raise RustError end
@@ -276,7 +280,7 @@ struct
 								val resVal = evalExp (env, D.Var v, newStore)
 								in saveReturn (v, #1 resVal, #2 resVal)
 							end
-							
+
 						| eval (env, D.Print e, store) =
 							let val exp = evalExp (env, e, store)
 								val _ = TextIO.output(TextIO.stdOut,
