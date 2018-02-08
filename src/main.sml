@@ -88,8 +88,13 @@ struct
 			| getLtime (ArgL, D.EmptyAL (), var) = D.V ""
 			| getLtime (D.ArgConcat (ltimeA, varA, alA),
 				 		 D.ArgConcat (ltimeP, varP, alP), var) =
-						 if var = varP then varA
-								  				 else getLtime(alA, alP, var)
+						 if var = varP then  if alA = D.EmptyAL () then varA
+						 											else let val _ = TextIO.output(TextIO.stdErr,
+																		"error:  missing lifetime specifier")
+																	in raise RustError end
+								  				 else let val _ = TextIO.output(TextIO.stdErr,
+														 "error:  missing lifetime specifier")
+													 in raise RustError end
 
 		in
 		fun compile (fileName) =
