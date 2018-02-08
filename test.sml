@@ -32,6 +32,4 @@ print "\ndoublefuncWrong.rs\n";
 Rust.run(Rust.compile("examples/doublefuncWrong.rs"))
     handle RustError => let val _ = print "\n" in 1 end;
 
-print "\n";
-
 OS.Process.exit(OS.Process.success);

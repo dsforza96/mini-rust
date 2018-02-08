@@ -83,6 +83,14 @@ struct
 											end else (!var, !value)
 							end
 
+		fun getLtime (D.EmptyAL (), D.EmptyAL (), var) = D.V ""
+			| getLtime (D.EmptyAL (), parL, var) = D.V ""
+			| getLtime (ArgL, D.EmptyAL (), var) = D.V ""
+			| getLtime (D.ArgConcat (ltimeA, varA, alA),
+				 		 D.ArgConcat (ltimeP, varP, alP), var) =
+						 if var = varP then varA
+								  				 else getLtime(alA, alP, var)
+
 		in
 		fun compile (fileName) =
 			let val inStream = TextIO.openIn fileName;
@@ -123,7 +131,8 @@ struct
 
 					| findLtime (D.ArgConcat (ltimeA, varA, alA),
 								 D.ArgConcat (ltimeP, varP, alP), ltList, lt, env, store) =
-								let val _ = valOf (List.find (fn x : D.Ltime => x = ltimeP) ltList)
+								let val _ = if ltimeP = D.EmptyLT () then D.EmptyLT () else
+										valOf (List.find (fn x : D.Ltime => x = ltimeP) ltList)
 										handle Option => let val _ = TextIO.output(TextIO.stdErr,
 											"error:  use of undeclared lifetime name `" ^ evalLt ltimeP ^ "`")
 												in raise RustError end
@@ -168,20 +177,30 @@ struct
 										in (#1 p1 + #1 p2, #2 p2)
 									end
 
+
+
 					| checkExp (env, D.Call(f, al), store) =
 						let val closure = LocToClose (findInEnv (env, f))
 							val newEnvStore = EnqueueArgs ((#1 closure), al,
 														   (#5 closure), env, store)
-							val newLtList = if (#2 closure) = [] andalso (#3 closure) = D.EmptyLT ()
+							val ltList = if (#2 closure) = [] andalso (#3 closure) = D.EmptyLT ()
 															then []
 															else findLtime (al,	#1 closure, #2 closure, #3 closure, env, store)
 							val _ = if (#2 closure) = [] andalso (#3 closure) = D.EmptyLT ()
 											then D.EmptyLT ()
-											else valOf (List.find (fn x : D.Ltime => x = (#3 closure)) (#2 closure))
-									handle Option => let val _ = TextIO.output(TextIO.stdErr,
-										"error:  use of undeclared lifetime name `" ^ evalLt (#3 closure) ^ "`")
-									in raise RustError end
+											else if (#3 closure) = D.EmptyLT () then
+															let val _ = TextIO.output(TextIO.stdErr,
+																"error:  missing lifetime specifier")
+															in raise RustError end
+														else
+																valOf (List.find (fn x : D.Ltime => x = (#3 closure)) (#2 closure))
+														handle Option => let val _ = TextIO.output(TextIO.stdErr,
+															"error:  use of undeclared lifetime name `" ^ evalLt (#3 closure) ^ "`")
+														in raise RustError end
 							val newStore = check (#1 newEnvStore, #4 closure, #2 newEnvStore)
+							val newLtList = if ltList = []
+															then [getLtime(al, (#1 closure), (!returnVar))]
+															else ltList
 							val _ = ltEnv :=  (D.V "$", newLtList)::(!ltEnv)
 							val _ = valOf (List.find (fn x => (!returnVar) = x)
 									(rederArgs (al, #1 closure,
