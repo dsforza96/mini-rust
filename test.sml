@@ -16,8 +16,12 @@ print "\n~*~*~*~*~ func.rs ~*~*~*~*~\n";
 Rust.run(Rust.compile("examples/func.rs"))
     handle RustError => let val _ = print "\n" in 1 end;
 
-print "\n~*~*~*~*~  lifetime.rs ~*~*~*~*~\n";
+print "\n~*~*~*~*~ lifetime.rs ~*~*~*~*~\n";
 Rust.run(Rust.compile("examples/lifetime.rs"))
+    handle RustError => let val _ = print "\n" in 1 end;
+
+print "\n~*~*~*~*~ implicitLifetime.rs ~*~*~*~*~\n";
+Rust.run(Rust.compile("examples/implicitLifetime.rs"))
     handle RustError => let val _ = print "\n" in 1 end;
 
 print "\n~*~*~*~*~ blockWrong.rs ~*~*~*~*~\n";
