@@ -161,14 +161,20 @@ struct
 													 findInEnv (env, v)), store)
 									val varLtList  = findInEnvLt(ltEnv, v)
 									val _ = List.map (fn x => findLtInEnv(env, x)) varLtList
-									in if valueV >= 0 then (valueV, store)
-											else if valueV = undef
+									val _ = List.map (fn x => if LocToInt (findInEnv (env, v)) > LocToInt (findLtInEnv (env, x))
 														then let val _ = TextIO.output(TextIO.stdErr,
-																	"error:  use of possibly uninitialized variable `" ^ evalVar v ^ "`")
-																	in raise RustError end
-														else let val newVal = followRef(v, valueV, env, store)
-																		in (#2 newVal, store)
-																	end
+															"error:  `" ^ evalVar x ^ "` does not live long enough")
+															in raise RustError
+															end
+														else ()) varLtList
+									in if valueV >= 0 then (valueV, store)
+									else if valueV = undef
+										then let val _ = TextIO.output(TextIO.stdErr,
+											"error:  use of possibly uninitialized variable `" ^ evalVar v ^ "`")
+											in raise RustError end
+									else let val newVal = followRef(v, valueV, env, store)
+										in (#2 newVal, store)
+										end
 								end
 
 					| checkExp (env, D.Ref r, store) =

@@ -3,8 +3,8 @@ fn main (){
         a
     }
 
-    let r;
     let x = 5;
+    let r;
     r = dummy(&x);
     println!("{}", r);
 }
