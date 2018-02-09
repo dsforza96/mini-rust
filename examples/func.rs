@@ -4,9 +4,9 @@ fn main (){
     }
     let q = 10;
     let w = 20;
+    let p2 = 50;
     let p1;
     {
-        let p2 = 50;
         p1 = &p2;
         println!("{}", p1);
     }

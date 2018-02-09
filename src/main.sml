@@ -41,6 +41,12 @@ struct
 									"error: cannot find value `" ^ evalVar id ^ "` in this scope")
 									in raise RustError end
 
+		fun findVarInEnv (env, loc) = #1 (valOf (List.find
+								(fn x : (D.VarDT * LocClos)	=> #2 x = loc) env))
+								handle Option => let val _ = TextIO.output(TextIO.stdErr,
+									"error: cannot find location `" ^ Int.toString (LocToInt loc) ^ "` in this scope")
+									in raise RustError end
+
 		fun findInEnvLt (env , id) = #2 (getOpt ((List.find
 								(fn x : (D.VarDT * (D.VarDT list)) => #1 x = id) (!env)),
 								(D.V " ", [])))
@@ -256,6 +262,14 @@ struct
 														in raise RustError
 												end
 											else ()
+							val _ = if (#1 (exp)) < (LocToInt (findInEnv(env, v))) then
+										let val var = findVarInEnv (env, Loc (#1 (exp)))
+											val _ = TextIO.output(TextIO.stdErr,
+											"error:  `" ^ evalVar var ^ "` does not live long enough")
+										in raise RustError
+										end
+									else ()
+
 							in ((findInEnv (env, v)), #1 (exp))::(#2 (exp))
 						end
 

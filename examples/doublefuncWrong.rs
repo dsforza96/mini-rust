@@ -5,7 +5,6 @@ fn main (){
             let k = 3;
             z = &k;
         }
-        println!("{}", z);
         x
     }
 
@@ -18,11 +17,6 @@ fn main (){
     let q = 10;
     let w = 20;
     let p1;
-    {
-        let p2 = 50;
-        p1 = &p2;
-        println!("{}", p1);
-    }
     let a = dummy1(&w, &q);
     println!("{}", a);
 }

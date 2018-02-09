@@ -5,7 +5,6 @@ fn main (){
 
     let r;
     {
-
         let x = 5;
         r = dummy(&x);
     }
