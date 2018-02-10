@@ -1,10 +1,8 @@
 fn main (){
     fn dummy1 <'a, 'b>(x: &'a i32, y: &'b i32) -> &'a i32{
         let z;
-        {
-            let k = 3;
-            z = &k;
-        }
+        let k = 3;
+        z = &k;
         x
     }
 
