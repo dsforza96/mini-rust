@@ -1,5 +1,5 @@
 fn main (){
-    fn dummy(a: &i32, b:&i32) -> &i32 {
+    fn dummy(a: &i32, b: &i32) -> &i32 {
         a
     }
 
