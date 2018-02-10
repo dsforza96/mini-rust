@@ -4,10 +4,13 @@ fn main(){
         x
     }
     let w = 10;
+    let s = 41;
     let res;
+    let k = &s;
     {
         let q = 5;
         res = dummy (&w, &q);
+        println!("{}", k);
     }
     println!("{}", res);
 }
