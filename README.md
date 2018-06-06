@@ -1,4 +1,4 @@
-# Mini-Rust: a SML implementation of Rust's lifetimes
+# Mini-Rust: A SML Implementation of Rust's Lifetimes
 
 ## Getting started
 
