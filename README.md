@@ -24,4 +24,4 @@ Rust.execute(Rust.compile("examples/dummy.rs"));
 ```
 
 ## Documentation
-For more informations read the documentation at [docs/relazione.pdf](https://github.com/dsforza96/mini-rust/blob/master/docs/relazione.pdf).
+For more informations read the documentation at [docs/relazione.pdf](docs/relazione.pdf).
