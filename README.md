@@ -5,7 +5,14 @@
 First clone the project to create a local copy on your computer.
 
 ```sh
-git clone git@github.com:dsfoza/mini-rust.git
+git clone git@github.com:dsforza96/mini-rust.git
+cd mini-rust
+```
+
+If you don't have any SSH key associated to your account, clone it using the HTTPS link:
+
+```sh
+git clone https://github.com/dsforza96/mini-rust.git
 cd mini-rust
 ```
 
@@ -17,10 +24,10 @@ CM.make "mini-rust.cm";
 ```
 
 With **mini-rust** you can compile and execute simple programs written in a small sub-language of *Rust* focused on lifetimes.
-For example, if you would to execute the file *dummy.rs* contained in directory *examples*, you should invoke the command
+For example, if you want to execute the file *dummy.rs* contained in directory *examples*, you should invoke the command
 
 ```sh
-Rust.execute(Rust.compile("examples/dummy.rs"));
+Rust.run(Rust.compile("examples/dummy.rs"));
 ```
 
 ## Documentation
